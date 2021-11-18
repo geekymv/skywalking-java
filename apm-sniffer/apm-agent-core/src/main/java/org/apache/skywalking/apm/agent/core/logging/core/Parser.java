@@ -98,11 +98,13 @@ public class Parser {
     }
 
     private void handleKeywordState(char c, StringBuilder buf, List<Converter> patternConverters) {
+        // 判断字符是否可以作为Java标识符的一部分，除了第一个字符。
         if (Character.isJavaIdentifierPart(c)) {
             buf.append(c);
         } else if (c == PERCENT_CHAR) {
             addConverterWithKeyword(buf, patternConverters);
         } else {
+            // 遇到不能作为Java标识符的部分，将前面的字符组成一个keyword
             addConverterWithKeyword(buf, patternConverters);
             if (c == ESCAPE_CHAR) {
                 escape("%", buf);
@@ -129,7 +131,9 @@ public class Parser {
                 escape("%", buf);
                 break;
             case PERCENT_CHAR:
+                // %前面的非keyword部分的字符原样输出
                 addConverter(buf, patternConverters, LiteralConverter.class);
+                // %后面的作为keyword
                 state = State.KEYWORD_STATE;
                 break;
             default:
