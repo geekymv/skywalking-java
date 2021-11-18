@@ -182,6 +182,12 @@ public abstract class AbstractLogger implements ILog {
         }
     }
 
+    /**
+     * 解析用户输入的message，将{}替换为对应的参数值
+     * @param message
+     * @param parameters
+     * @return
+     */
     protected String replaceParam(String message, Object... parameters) {
         if (message == null) {
             return message;
