@@ -38,6 +38,8 @@ public class AgentPackagePath {
     public static File getPath() throws AgentPackageNotFoundException {
         if (AGENT_PACKAGE_PATH == null) {
             AGENT_PACKAGE_PATH = findPath();
+            // E:\develop\source\sample\source\skywalking-java\skywalking-agent
+            System.out.println("AGENT_PACKAGE_PATH = " + AGENT_PACKAGE_PATH);
         }
         return AGENT_PACKAGE_PATH;
     }
@@ -48,11 +50,12 @@ public class AgentPackagePath {
 
     private static File findPath() throws AgentPackageNotFoundException {
         String classResourcePath = AgentPackagePath.class.getName().replaceAll("\\.", "/") + ".class";
-
+        // org/apache/skywalking/apm/agent/core/boot/AgentPackagePath.class
+        System.out.println("find path = " + classResourcePath);
         URL resource = ClassLoader.getSystemClassLoader().getResource(classResourcePath);
         if (resource != null) {
             String urlString = resource.toString();
-
+            //jar:file:/E:/develop/source/sample/source/skywalking-java/skywalking-agent/skywalking-agent.jar!/org/apache/skywalking/apm/agent/core/boot/AgentPackagePath.class
             LOGGER.debug("The beacon class location is {}.", urlString);
 
             int insidePathIndex = urlString.indexOf('!');
@@ -60,6 +63,8 @@ public class AgentPackagePath {
 
             if (isInJar) {
                 urlString = urlString.substring(urlString.indexOf("file:"), insidePathIndex);
+                // file:/E:/develop/source/sample/source/skywalking-java/skywalking-agent/skywalking-agent.jar
+                System.out.println("urlString = " + urlString);
                 File agentJarFile = null;
                 try {
                     agentJarFile = new File(new URL(urlString).toURI());
@@ -67,6 +72,7 @@ public class AgentPackagePath {
                     LOGGER.error(e, "Can not locate agent jar file by url:" + urlString);
                 }
                 if (agentJarFile.exists()) {
+                    // 返回skywalking-agent.jar文件所在的目录
                     return agentJarFile.getParentFile();
                 }
             } else {

@@ -74,6 +74,7 @@ public class SnifferConfigInitializer {
         }
 
         try {
+            // 使用 System.getProperties() 覆盖
             overrideConfigBySystemProp();
         } catch (Exception e) {
             LOGGER.error(e, "Failed to read the system properties.");
@@ -84,13 +85,13 @@ public class SnifferConfigInitializer {
             try {
                 agentOptions = agentOptions.trim();
                 LOGGER.info("Agent options is {}.", agentOptions);
-
+                // 使用 agent 参数值覆盖
                 overrideConfigByAgentOptions(agentOptions);
             } catch (Exception e) {
                 LOGGER.error(e, "Failed to parse the agent options, val is {}.", agentOptions);
             }
         }
-
+        // 将配置 AGENT_SETTINGS 映射到 Config 类中
         initializeConfig(Config.class);
         // reconfigure logger after config initialization
         configureLogger();

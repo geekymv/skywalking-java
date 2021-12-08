@@ -42,6 +42,7 @@ public class PluginResourcesResolver {
             while (urls.hasMoreElements()) {
                 URL pluginUrl = urls.nextElement();
                 cfgUrlPaths.add(pluginUrl);
+                // jar:file:E:\develop\source\sample\source\skywalking-java\skywalking-agent\activations\apm-toolkit-trace-activation-8.8.0.jar!/skywalking-plugin.def
                 LOGGER.info("find skywalking plugin define in {}", pluginUrl);
             }
 

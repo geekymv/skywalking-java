@@ -49,6 +49,7 @@ public class AgentClassLoader extends ClassLoader {
     static {
         /*
          * Try to solve the classloader dead lock. See https://github.com/apache/skywalking/pull/2016
+         * 支持并发的加载类，参见 ClassLoader 的 Javadoc
          */
         registerAsParallelCapable();
     }
@@ -77,6 +78,7 @@ public class AgentClassLoader extends ClassLoader {
             synchronized (AgentClassLoader.class) {
                 if (DEFAULT_LOADER == null) {
                     DEFAULT_LOADER = new AgentClassLoader(PluginBootstrap.class.getClassLoader());
+                    LOGGER.info("DEFAULT_LOADER parent is " + DEFAULT_LOADER.getParent().getClass());
                 }
             }
         }
@@ -84,11 +86,21 @@ public class AgentClassLoader extends ClassLoader {
 
     public AgentClassLoader(ClassLoader parent) throws AgentPackageNotFoundException {
         super(parent);
+        LOGGER.info("AgentClassLoader parent is " + parent.getClass());
+        // SkyWalking agent.jar 所在目录
         File agentDictionary = AgentPackagePath.getPath();
         classpath = new LinkedList<>();
+        // 设置插件的 classpath
         Config.Plugin.MOUNT.forEach(mountFolder -> classpath.add(new File(agentDictionary, mountFolder)));
     }
 
+    /**
+     * Class.forName(name, true, AgentClassLoader.getDefault()) 使用 AgentClassLoader 类加载器时，会调用这个 findClass 方法
+     * 具体见父类 ClassLoader 的 loadClass 方法
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         List<Jar> allJars = getAllJars();
@@ -109,6 +121,7 @@ public class AgentClassLoader extends ClassLoader {
                     }
                     data = baos.toByteArray();
                 }
+                // defineClass 方法用于将类的字节数组转换成类的 Class 对象
                 return processLoadedClass(defineClass(name, data, 0, data.length));
             } catch (IOException e) {
                 LOGGER.error(e, "find class fail.");
@@ -132,11 +145,13 @@ public class AgentClassLoader extends ClassLoader {
         return null;
     }
 
+    // 父类 ClassLoader 的 getResources 方法内部会调用这个方法
     @Override
     protected Enumeration<URL> findResources(String name) throws IOException {
         List<URL> allResources = new LinkedList<>();
         List<Jar> allJars = getAllJars();
         for (Jar jar : allJars) {
+            // 从 jar 包中查找目标文件
             JarEntry entry = jar.jarFile.getJarEntry(name);
             if (entry != null) {
                 allResources.add(new URL("jar:file:" + jar.sourceFile.getAbsolutePath() + "!/" + name));
@@ -173,6 +188,7 @@ public class AgentClassLoader extends ClassLoader {
         if (allJars == null) {
             jarScanLock.lock();
             try {
+                // 获取到锁之后，再检查一次
                 if (allJars == null) {
                     allJars = doGetJars();
                 }
@@ -188,6 +204,7 @@ public class AgentClassLoader extends ClassLoader {
         LinkedList<Jar> jars = new LinkedList<>();
         for (File path : classpath) {
             if (path.exists() && path.isDirectory()) {
+                // 查找目录下所有的.jar文件
                 String[] jarFileNames = path.list((dir, name) -> name.endsWith(".jar"));
                 for (String fileName : jarFileNames) {
                     try {
