@@ -59,8 +59,8 @@ public abstract class AbstractClassEnhancePluginDefine {
      */
     public DynamicType.Builder<?> define(TypeDescription typeDescription, DynamicType.Builder<?> builder,
         ClassLoader classLoader, EnhanceContext context) throws PluginException {
-        String interceptorDefineClassName = this.getClass().getName();
-        String transformClassName = typeDescription.getTypeName();
+        String interceptorDefineClassName = this.getClass().getName(); // 当前增强插件的名字
+        String transformClassName = typeDescription.getTypeName(); // 待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）
         if (StringUtil.isEmpty(transformClassName)) {
             LOGGER.warn("classname of being intercepted is not defined by {}.", interceptorDefineClassName);
             return null;
@@ -70,6 +70,7 @@ public abstract class AbstractClassEnhancePluginDefine {
         WitnessFinder finder = WitnessFinder.INSTANCE;
         /**
          * find witness classes for enhance class
+         * 查找待增强类的 witness，可以用于区分不同版本
          */
         String[] witnessClasses = witnessClasses();
         if (witnessClasses != null) {
@@ -120,7 +121,7 @@ public abstract class AbstractClassEnhancePluginDefine {
 
     /**
      * Enhance a class to intercept constructors and class instance methods.
-     *
+     * 增加构造方法和实例方法
      * @param typeDescription target class description
      * @param newClassBuilder byte-buddy's builder to manipulate class bytecode.
      * @return new byte-buddy's builder for further manipulation.
@@ -131,7 +132,7 @@ public abstract class AbstractClassEnhancePluginDefine {
 
     /**
      * Enhance a class to intercept class static methods.
-     *
+     * 增强静态方法
      * @param typeDescription target class description
      * @param newClassBuilder byte-buddy's builder to manipulate class bytecode.
      * @return new byte-buddy's builder for further manipulation.

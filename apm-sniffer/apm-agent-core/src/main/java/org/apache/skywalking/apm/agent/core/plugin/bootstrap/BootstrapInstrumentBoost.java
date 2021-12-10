@@ -95,7 +95,7 @@ public class BootstrapInstrumentBoost {
         if (!prepareJREInstrumentationV2(pluginFinder, classesTypeMap)) {
             return agentBuilder;
         }
-
+        // 加载高优先级的类
         for (String highPriorityClass : HIGH_PRIORITY_CLASSES) {
             loadHighPriorityClass(classesTypeMap, highPriorityClass);
         }
@@ -113,6 +113,8 @@ public class BootstrapInstrumentBoost {
         /**
          * Inject the classes into bootstrap class loader by using Unsafe Strategy.
          * ByteBuddy adapts the sun.misc.Unsafe and jdk.internal.misc.Unsafe automatically.
+         *
+         * 将类注入到 bootstrap class loader
          */
         ClassInjector.UsingUnsafe.Factory factory = ClassInjector.UsingUnsafe.Factory.resolve(instrumentation);
         factory.make(null, null).injectRaw(classesTypeMap);
@@ -156,8 +158,10 @@ public class BootstrapInstrumentBoost {
     private static boolean prepareJREInstrumentation(PluginFinder pluginFinder,
         Map<String, byte[]> classesTypeMap) throws PluginException {
         TypePool typePool = TypePool.Default.of(BootstrapInstrumentBoost.class.getClassLoader());
+        // 获取作用于 BootstrapClass 的类增强器（比如 RunnableInstrumentation ）
         List<AbstractClassEnhancePluginDefine> bootstrapClassMatchDefines = pluginFinder.getBootstrapClassMatchDefine();
         for (AbstractClassEnhancePluginDefine define : bootstrapClassMatchDefines) {
+            // 实例方法拦截点
             if (Objects.nonNull(define.getInstanceMethodsInterceptPoints())) {
                 for (InstanceMethodsInterceptPoint point : define.getInstanceMethodsInterceptPoints()) {
                     if (point.isOverrideArgs()) {
@@ -171,6 +175,7 @@ public class BootstrapInstrumentBoost {
                 }
             }
 
+            // 构造方法拦截点
             if (Objects.nonNull(define.getConstructorsInterceptPoints())) {
                 for (ConstructorInterceptPoint point : define.getConstructorsInterceptPoints()) {
                     generateDelegator(
@@ -178,6 +183,7 @@ public class BootstrapInstrumentBoost {
                 }
             }
 
+            // 静态方法拦截点
             if (Objects.nonNull(define.getStaticMethodsInterceptPoints())) {
                 for (StaticMethodsInterceptPoint point : define.getStaticMethodsInterceptPoints()) {
                     if (point.isOverrideArgs()) {

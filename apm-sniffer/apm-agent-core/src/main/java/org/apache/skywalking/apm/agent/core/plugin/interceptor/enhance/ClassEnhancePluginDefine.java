@@ -66,7 +66,9 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
     protected DynamicType.Builder<?> enhanceInstance(TypeDescription typeDescription,
         DynamicType.Builder<?> newClassBuilder, ClassLoader classLoader,
         EnhanceContext context) throws PluginException {
+        // 获取构造方法拦截点
         ConstructorInterceptPoint[] constructorInterceptPoints = getConstructorsInterceptPoints();
+        // 获取实例方法拦截点
         InstanceMethodsInterceptPoint[] instanceMethodsInterceptPoints = getInstanceMethodsInterceptPoints();
         String enhanceOriginClassName = typeDescription.getTypeName();
         boolean existedConstructorInterceptPoint = false;
@@ -94,9 +96,15 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
          *
          * And make sure the source codes manipulation only occurs once.
          *
+         * 操作类的字节码
+         * 1.增加一个属性 _$EnhancedClassField_ws
+         * 2.给属性增加一个访问器
          */
+        LOGGER.info("EnhancedInstance class loader is " + EnhancedInstance.class.getClassLoader());
         if (!typeDescription.isAssignableTo(EnhancedInstance.class)) {
+            // 待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）还没有实现 EnhancedInstance 接口
             if (!context.isObjectExtended()) {
+                // 给类增加一个属性并给属性增加访问器，让类实现 EnhancedInstance 接口
                 newClassBuilder = newClassBuilder.defineField(
                     CONTEXT_ATTR_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
                                                  .implement(EnhancedInstance.class)
@@ -107,10 +115,12 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
 
         /**
          * 2. enhance constructors
+         * 增强构造方法
          */
         if (existedConstructorInterceptPoint) {
             for (ConstructorInterceptPoint constructorInterceptPoint : constructorInterceptPoints) {
                 if (isBootstrapInstrumentation()) {
+                    // 判断是否为启动类加载器加载的类的增强插件，参见 org.apache.skywalking.apm.plugin.jdk.threading.define.RunnableInstrumentation
                     newClassBuilder = newClassBuilder.constructor(constructorInterceptPoint.getConstructorMatcher())
                                                      .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.withDefaultConfiguration()
                                                                                                                  .to(BootstrapInstrumentBoost
@@ -127,6 +137,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
 
         /**
          * 3. enhance instance methods
+         * 增强实例方法
          */
         if (existedMethodsInterceptPoints) {
             for (InstanceMethodsInterceptPoint instanceMethodsInterceptPoint : instanceMethodsInterceptPoints) {

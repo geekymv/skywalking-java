@@ -56,12 +56,20 @@ public enum ServiceManager {
         });
     }
 
+    /**
+     * Map<Class, BootService> bootedServices
+     * key 是 DefaultImplementor 注解所在类的 class 对象，或者 OverrideImplementor 注解的 value 所代表的 class 对象
+     * value 是 DefaultImplementor 注解所在类的实例，或者 OverrideImplementor 注解对应的类实例
+     * @return
+     */
     private Map<Class, BootService> loadAllServices() {
         Map<Class, BootService> bootedServices = new LinkedHashMap<>();
         List<BootService> allServices = new LinkedList<>();
         load(allServices);
         for (final BootService bootService : allServices) {
+            // 实例的 class 对象
             Class<? extends BootService> bootServiceClass = bootService.getClass();
+            // 根据 DefaultImplementor 注解判断是否为默认实现类
             boolean isDefaultImplementor = bootServiceClass.isAnnotationPresent(DefaultImplementor.class);
             if (isDefaultImplementor) {
                 if (!bootedServices.containsKey(bootServiceClass)) {
@@ -72,18 +80,21 @@ public enum ServiceManager {
             } else {
                 OverrideImplementor overrideImplementor = bootServiceClass.getAnnotation(OverrideImplementor.class);
                 if (overrideImplementor == null) {
+                    // 类上没有 DefaultImplementor 注解，也没有 OverrideImplementor 注解
                     if (!bootedServices.containsKey(bootServiceClass)) {
                         bootedServices.put(bootServiceClass, bootService);
                     } else {
                         throw new ServiceConflictException("Duplicate service define for :" + bootServiceClass);
                     }
                 } else {
+                    // 类上有 OverrideImplementor 注解，获取默认实现
                     Class<? extends BootService> targetService = overrideImplementor.value();
                     if (bootedServices.containsKey(targetService)) {
                         boolean presentDefault = bootedServices.get(targetService)
                                                                .getClass()
                                                                .isAnnotationPresent(DefaultImplementor.class);
                         if (presentDefault) {
+                            // 将默认实现实例的class 指向新的 OverrideImplementor 注解的类实例
                             bootedServices.put(targetService, bootService);
                         } else {
                             throw new ServiceConflictException(

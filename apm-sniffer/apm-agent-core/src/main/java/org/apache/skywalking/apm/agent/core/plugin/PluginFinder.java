@@ -54,6 +54,7 @@ public class PluginFinder {
 
             if (match instanceof NameMatch) {
                 NameMatch nameMatch = (NameMatch) match;
+                // 根据待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）找到对应的增强插件
                 LinkedList<AbstractClassEnhancePluginDefine> pluginDefines = nameMatchDefine.get(nameMatch.getClassName());
                 if (pluginDefines == null) {
                     pluginDefines = new LinkedList<AbstractClassEnhancePluginDefine>();
@@ -91,6 +92,7 @@ public class PluginFinder {
         ElementMatcher.Junction judge = new AbstractJunction<NamedElement>() {
             @Override
             public boolean matches(NamedElement target) {
+                // 根据类名匹配
                 return nameMatchDefine.containsKey(target.getActualName());
             }
         };
@@ -98,6 +100,7 @@ public class PluginFinder {
         for (AbstractClassEnhancePluginDefine define : signatureMatchDefine) {
             ClassMatch match = define.enhanceClass();
             if (match instanceof IndirectMatch) {
+                // 间接匹配（比如 PrefixMatch、MethodAnnotationMatch、RegexMatch 等）
                 judge = judge.or(((IndirectMatch) match).buildJunction());
             }
         }

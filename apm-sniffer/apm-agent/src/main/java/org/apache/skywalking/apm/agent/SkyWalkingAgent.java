@@ -153,11 +153,13 @@ public class SkyWalkingAgent {
                                                 final ClassLoader classLoader,
                                                 final JavaModule module) {
             LoadedLibraryCollector.registerURLClassLoader(classLoader);
+            // 根据待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）找到对应的增强插件
             List<AbstractClassEnhancePluginDefine> pluginDefines = pluginFinder.find(typeDescription);
             if (pluginDefines.size() > 0) {
                 DynamicType.Builder<?> newBuilder = builder;
                 EnhanceContext context = new EnhanceContext();
                 for (AbstractClassEnhancePluginDefine define : pluginDefines) {
+                    // 调用增强插件的 define 方法
                     DynamicType.Builder<?> possibleNewBuilder = define.define(
                             typeDescription, newBuilder, classLoader, context);
                     if (possibleNewBuilder != null) {
