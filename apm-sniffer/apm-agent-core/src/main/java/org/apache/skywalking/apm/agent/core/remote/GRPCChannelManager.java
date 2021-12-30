@@ -49,10 +49,12 @@ import static org.apache.skywalking.apm.agent.core.conf.Config.Collector.IS_RESO
 public class GRPCChannelManager implements BootService, Runnable {
     private static final ILog LOGGER = LogManager.getLogger(GRPCChannelManager.class);
 
+    // 连接 channel, 只连接一个 gRPC server
     private volatile GRPCChannel managedChannel = null;
     private volatile ScheduledFuture<?> connectCheckFuture;
     private volatile boolean reconnect = true;
     private final Random random = new Random();
+    // channel 连接状态的 listeners, 观察者模式
     private final List<GRPCChannelListener> listeners = Collections.synchronizedList(new LinkedList<>());
     private volatile List<String> grpcServers;
     private volatile int selectedIdx = -1;
@@ -71,6 +73,7 @@ public class GRPCChannelManager implements BootService, Runnable {
             return;
         }
         grpcServers = Arrays.asList(Config.Collector.BACKEND_SERVICE.split(","));
+        // 连接检查定时任务, 默认每30秒执行一次
         connectCheckFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("GRPCChannelManager")
         ).scheduleAtFixedRate(
@@ -180,6 +183,7 @@ public class GRPCChannelManager implements BootService, Runnable {
     }
 
     /**
+     * 当其他服务使用 channel 发生异常, 告知 GRPCChannelManager 连接异常触发重连
      * If the given exception is triggered by network problem, connect in background.
      */
     public void reportError(Throwable throwable) {
@@ -189,6 +193,10 @@ public class GRPCChannelManager implements BootService, Runnable {
         }
     }
 
+    /**
+     * 通知 listener 连接状态发生变化
+     * @param status
+     */
     private void notify(GRPCChannelStatus status) {
         for (GRPCChannelListener listener : listeners) {
             try {
