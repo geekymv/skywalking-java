@@ -49,6 +49,7 @@ public class InstMethodsInter {
      */
     public InstMethodsInter(String instanceMethodsAroundInterceptorClassName, ClassLoader classLoader) {
         try {
+            // 使用 AgentClassLoader 加载拦截器并实例化
             interceptor = InterceptorInstanceLoader.load(instanceMethodsAroundInterceptorClassName, classLoader);
         } catch (Throwable t) {
             throw new PluginException("Can't create InstanceMethodsAroundInterceptor.", t);
