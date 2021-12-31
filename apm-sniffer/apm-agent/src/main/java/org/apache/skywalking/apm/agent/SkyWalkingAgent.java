@@ -131,6 +131,7 @@ public class SkyWalkingAgent {
                     .installOn(instrumentation);
 
         try {
+            // 启动所有的 BootService 服务
             ServiceManager.INSTANCE.boot();
         } catch (Exception e) {
             LOGGER.error(e, "Skywalking agent boot failure.");

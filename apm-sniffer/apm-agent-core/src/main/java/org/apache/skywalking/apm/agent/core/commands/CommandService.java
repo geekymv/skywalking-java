@@ -65,11 +65,13 @@ public class CommandService implements BootService, Runnable {
             try {
                 BaseCommand command = commands.take();
 
+                // 判断 command 是否已经执行
                 if (isCommandExecuted(command)) {
                     continue;
                 }
 
                 commandExecutorService.execute(command);
+                // 缓存执行过的 command 序列号
                 serialNumberCache.add(command.getSerialNumber());
             } catch (InterruptedException e) {
                 LOGGER.error(e, "Failed to take commands.");

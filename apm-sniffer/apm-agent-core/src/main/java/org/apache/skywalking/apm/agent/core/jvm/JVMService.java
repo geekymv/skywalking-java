@@ -46,6 +46,7 @@ public class JVMService implements BootService, Runnable {
     private static final ILog LOGGER = LogManager.getLogger(JVMService.class);
     private volatile ScheduledFuture<?> collectMetricFuture;
     private volatile ScheduledFuture<?> sendMetricFuture;
+    // sender 用于将收集到的信息发送给 Collector
     private JVMMetricsSender sender;
 
     @Override
@@ -55,6 +56,7 @@ public class JVMService implements BootService, Runnable {
 
     @Override
     public void boot() throws Throwable {
+        // 收集 JVM 信息的线程
         collectMetricFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("JVMService-produce"))
                                        .scheduleAtFixedRate(new RunnableWithExceptionProtection(
@@ -66,6 +68,7 @@ public class JVMService implements BootService, Runnable {
                                                }
                                            }
                                        ), 0, 1, TimeUnit.SECONDS);
+        // 发送线程
         sendMetricFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("JVMService-consume"))
                                     .scheduleAtFixedRate(new RunnableWithExceptionProtection(

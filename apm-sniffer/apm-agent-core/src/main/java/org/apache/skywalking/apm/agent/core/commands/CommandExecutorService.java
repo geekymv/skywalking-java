@@ -37,6 +37,7 @@ import org.apache.skywalking.apm.network.trace.component.command.ProfileTaskComm
  */
 @DefaultImplementor
 public class CommandExecutorService implements BootService, CommandExecutor {
+    // command 和 executor 的映射
     private Map<String, CommandExecutor> commandExecutorMap;
 
     @Override

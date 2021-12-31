@@ -152,6 +152,7 @@ public enum ServiceManager {
     }
 
     void load(List<BootService> allServices) {
+        // 使用 ServiceLoader 加载并实例化所有 BootService 的实现
         for (final BootService bootService : ServiceLoader.load(BootService.class, AgentClassLoader.getDefault())) {
             allServices.add(bootService);
         }

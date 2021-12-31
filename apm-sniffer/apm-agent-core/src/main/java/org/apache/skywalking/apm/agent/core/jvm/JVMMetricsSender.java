@@ -80,6 +80,7 @@ public class JVMMetricsSender implements BootService, Runnable, GRPCChannelListe
                     builder.setServiceInstance(Config.Agent.INSTANCE_NAME);
                     Commands commands = stub.withDeadlineAfter(GRPC_UPSTREAM_TIMEOUT, TimeUnit.SECONDS)
                                             .collect(builder.build());
+                    // 接收服务端返回的 command
                     ServiceManager.INSTANCE.findService(CommandService.class).receiveCommand(commands);
                 }
             } catch (Throwable t) {
