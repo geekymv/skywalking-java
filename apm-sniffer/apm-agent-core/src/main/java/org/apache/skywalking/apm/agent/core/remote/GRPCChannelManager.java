@@ -116,6 +116,7 @@ public class GRPCChannelManager implements BootService, Runnable {
                     })
                     .flatMap(domainPortPairs -> {
                         try {
+                            // InetAddress.getAllByName() 将域名解析成对应IP
                             return Arrays.stream(InetAddress.getAllByName(domainPortPairs[0]))
                                     .map(InetAddress::getHostAddress)
                                     .map(ip -> String.format("%s:%s", ip, domainPortPairs[1]));
