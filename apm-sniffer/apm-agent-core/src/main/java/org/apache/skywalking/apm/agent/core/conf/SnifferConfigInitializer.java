@@ -63,9 +63,12 @@ public class SnifferConfigInitializer {
     public static void initializeCoreConfig(String agentOptions) {
         AGENT_SETTINGS = new Properties();
         try (final InputStreamReader configFileStream = loadConfig()) {
+            // 将配置文件中的 key/value 加载到 Properties
             AGENT_SETTINGS.load(configFileStream);
             for (String key : AGENT_SETTINGS.stringPropertyNames()) {
                 String value = (String) AGENT_SETTINGS.get(key);
+                // 从配置文件中读取到的配置值都是以 placeholder 形式(比如 agent.service_name=${SW_AGENT_NAME:Your_ApplicationName})存在的
+                // 这里需要处理 placeholder
                 AGENT_SETTINGS.put(key, PropertyPlaceholderHelper.INSTANCE.replacePlaceholders(value, AGENT_SETTINGS));
             }
 
@@ -85,7 +88,7 @@ public class SnifferConfigInitializer {
             try {
                 agentOptions = agentOptions.trim();
                 LOGGER.info("Agent options is {}.", agentOptions);
-                // 使用 agent 参数值覆盖
+                // 使用 agent 参数值覆盖(-javaagent:/path/to/skywalking-agent.jar=k1=v1,k2=v2)
                 overrideConfigByAgentOptions(agentOptions);
             } catch (Exception e) {
                 LOGGER.error(e, "Failed to parse the agent options, val is {}.", agentOptions);
@@ -146,10 +149,12 @@ public class SnifferConfigInitializer {
 
     private static List<List<String>> parseAgentOptions(String agentOptions) {
         List<List<String>> options = new ArrayList<>();
+        // terms 中的第一个元素是key, 第二个元素是value
         List<String> terms = new ArrayList<>();
         boolean isInQuotes = false;
         StringBuilder currentTerm = new StringBuilder();
         for (char c : agentOptions.toCharArray()) {
+            // 单引号或双引号
             if (c == '\'' || c == '"') {
                 isInQuotes = !isInQuotes;
             } else if (c == '=' && !isInQuotes) {   // key-value pair uses '=' as separator
@@ -185,6 +190,7 @@ public class SnifferConfigInitializer {
         Properties systemProperties = System.getProperties();
         for (final Map.Entry<Object, Object> prop : systemProperties.entrySet()) {
             String key = prop.getKey().toString();
+            // 必须是以 skywalking. 开头的属性
             if (key.startsWith(ENV_KEY_PREFIX)) {
                 String realKey = key.substring(ENV_KEY_PREFIX.length());
                 AGENT_SETTINGS.put(realKey, prop.getValue());
@@ -198,7 +204,9 @@ public class SnifferConfigInitializer {
      * @return the config file {@link InputStream}, or null if not needEnhance.
      */
     private static InputStreamReader loadConfig() throws AgentPackageNotFoundException, ConfigNotFoundException {
+        // 读取 Java 虚拟机中的系统属性, Java 虚拟机中的系统属性在运行Java程序的时候通过 java -Dk1=v1 配置.
         String specifiedConfigPath = System.getProperty(SPECIFIED_CONFIG_PATH);
+        // 使用指定的配置文件或默认的配置文件, AgentPackagePath.getPath() 获取 skywalking-agent.jar 所在目录
         File configFile = StringUtil.isEmpty(specifiedConfigPath) ? new File(
             AgentPackagePath.getPath(), DEFAULT_CONFIG_FILE_NAME) : new File(specifiedConfigPath);
 

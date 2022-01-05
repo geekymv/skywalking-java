@@ -98,12 +98,16 @@ public enum PropertyPlaceholderHelper {
         });
     }
 
+    // 优先级 System.Properties(-D) > System environment variables > Config file
     private String getConfigValue(String key, final Properties properties) {
+        // 从Java虚拟机系统属性中获取(-D)
         String value = System.getProperty(key);
         if (value == null) {
+            // 从操作系统环境变量获取, 比如 JAVA_HOME、Path 等环境变量
             value = System.getenv(key);
         }
         if (value == null) {
+            // 从配置文件中获取
             value = properties.getProperty(key);
         }
         return value;
