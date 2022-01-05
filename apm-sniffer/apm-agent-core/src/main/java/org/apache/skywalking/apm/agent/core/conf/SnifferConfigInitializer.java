@@ -204,7 +204,7 @@ public class SnifferConfigInitializer {
      * @return the config file {@link InputStream}, or null if not needEnhance.
      */
     private static InputStreamReader loadConfig() throws AgentPackageNotFoundException, ConfigNotFoundException {
-        // 读取 Java 虚拟机中的系统属性, Java 虚拟机中的系统属性在运行Java程序的时候通过 java -Dk1=v1 配置.
+        // System.getProperty() 读取 Java 虚拟机中的系统属性, Java 虚拟机中的系统属性在运行Java程序的时候通过 java -Dk1=v1 配置.
         String specifiedConfigPath = System.getProperty(SPECIFIED_CONFIG_PATH);
         // 使用指定的配置文件或默认的配置文件, AgentPackagePath.getPath() 获取 skywalking-agent.jar 所在目录
         File configFile = StringUtil.isEmpty(specifiedConfigPath) ? new File(

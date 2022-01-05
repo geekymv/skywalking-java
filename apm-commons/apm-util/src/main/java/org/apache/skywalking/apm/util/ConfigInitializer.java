@@ -78,14 +78,19 @@ public class ConfigInitializer {
                     }
                     Object convertedValue = convertToTypicalType(type, value);
                     if (convertedValue != null) {
+                        // 通过反射给静态属性设置值
                         field.set(null, convertedValue);
                     }
                 }
             }
         }
+        // recentConfigType.getClasses() 获取 public 的 classes 和 interfaces
         for (Class<?> innerConfiguration : recentConfigType.getClasses()) {
+            // parentDesc 将类（接口）名入栈
             parentDesc.append(innerConfiguration.getSimpleName());
+            // 递归调用
             initNextLevel(properties, innerConfiguration, parentDesc);
+            // parentDesc 将类（接口）名出栈
             parentDesc.removeLastDesc();
         }
     }
