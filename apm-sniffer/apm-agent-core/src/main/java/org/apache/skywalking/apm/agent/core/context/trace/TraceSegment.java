@@ -43,6 +43,7 @@ public class TraceSegment {
      * we only cache the first parent segment reference.
      * <p>
      * This field will not be serialized. Keeping this field is only for quick accessing.
+     * 父 TraceSegment
      */
     private TraceSegmentRef ref;
 

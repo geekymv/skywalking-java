@@ -441,6 +441,7 @@ public class TracingContext implements AbstractTracerContext {
 
             if (isFinishedInMainThread && (!isRunningInAsyncMode || asyncSpanCounter == 0)) {
                 TraceSegment finishedSegment = segment.finish(isLimitMechanismWorking());
+                // 通知 TraceSegmentServiceClient.afterFinished TraceSegment 已经完成
                 TracingContext.ListenerManager.notifyFinish(finishedSegment);
                 running = false;
             }

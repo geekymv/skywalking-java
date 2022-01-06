@@ -126,6 +126,7 @@ public class DataCarrier<T> {
         if (driver != null) {
             driver.close(channels);
         }
+        // 创建消费者线程
         driver = new ConsumeDriver<T>(this.name, this.channels, consumer, num, consumeCycle);
         driver.begin(channels);
         return this;

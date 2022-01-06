@@ -45,9 +45,9 @@ public final class GlobalIdGenerator {
     public static String generate() {
         return StringUtil.join(
             '.',
-            PROCESS_ID,
-            String.valueOf(Thread.currentThread().getId()),
-            String.valueOf(THREAD_ID_SEQUENCE.get().nextSeq())
+            PROCESS_ID, // 应用进程ID
+            String.valueOf(Thread.currentThread().getId()), // 线程ID
+            String.valueOf(THREAD_ID_SEQUENCE.get().nextSeq()) // 时间戳 * 10000 + 线程自增序列
         );
     }
 

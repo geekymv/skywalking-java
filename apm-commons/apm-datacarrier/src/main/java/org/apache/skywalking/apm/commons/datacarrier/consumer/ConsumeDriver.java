@@ -88,6 +88,7 @@ public class ConsumeDriver<T> implements IDriver {
         }
         lock.lock();
         try {
+            // 将 queue buffer 分配给线程
             this.allocateBuffer2Thread();
             for (ConsumerThread consumerThread : consumerThreads) {
                 consumerThread.start();

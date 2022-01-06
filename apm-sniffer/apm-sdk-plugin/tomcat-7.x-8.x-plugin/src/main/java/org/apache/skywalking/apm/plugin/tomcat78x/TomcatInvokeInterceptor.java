@@ -102,6 +102,7 @@ public class TomcatInvokeInterceptor implements InstanceMethodsAroundInterceptor
             collectHttpParam(request, span);
         }
         ContextManager.getRuntimeContext().remove(Constants.FORWARD_REQUEST_FLAG);
+        // TraceSegment 完成
         ContextManager.stopSpan();
         return ret;
     }

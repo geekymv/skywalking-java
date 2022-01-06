@@ -51,6 +51,7 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
     private long lastLogTime;
     private long segmentUplinkedCounter;
     private long segmentAbandonedCounter;
+    // 内存队列
     private volatile DataCarrier<TraceSegment> carrier;
     private volatile TraceSegmentReportServiceGrpc.TraceSegmentReportServiceStub serviceStub;
     private volatile GRPCChannelStatus status = GRPCChannelStatus.DISCONNECT;
@@ -66,17 +67,20 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
         segmentUplinkedCounter = 0;
         segmentAbandonedCounter = 0;
         carrier = new DataCarrier<>(CHANNEL_SIZE, BUFFER_SIZE, BufferStrategy.IF_POSSIBLE);
+        // 消费消息，调用 IConsumer(this).consume 方法
         carrier.consume(this, 1);
     }
 
     @Override
     public void onComplete() {
+        // 注册监听器
         TracingContext.ListenerManager.add(this);
     }
 
     @Override
     public void shutdown() {
         TracingContext.ListenerManager.remove(this);
+        // 关闭 carrier 线程
         carrier.shutdownConsumers();
     }
 
@@ -170,6 +174,7 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
         if (traceSegment.isIgnore()) {
             return;
         }
+        // 生产消息，消息入队列
         if (!carrier.produce(traceSegment)) {
             if (LOGGER.isDebugEnable()) {
                 LOGGER.debug("One trace segment has been abandoned, cause by buffer is full.");
