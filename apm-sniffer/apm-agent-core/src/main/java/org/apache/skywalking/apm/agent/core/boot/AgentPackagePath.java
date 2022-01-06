@@ -37,9 +37,8 @@ public class AgentPackagePath {
 
     public static File getPath() throws AgentPackageNotFoundException {
         if (AGENT_PACKAGE_PATH == null) {
+            // 返回 skywalking-agent.jar 文件所在的目录 E:\develop\source\sample\source\skywalking-java\skywalking-agent
             AGENT_PACKAGE_PATH = findPath();
-            // E:\develop\source\sample\source\skywalking-java\skywalking-agent
-            System.out.println("AGENT_PACKAGE_PATH = " + AGENT_PACKAGE_PATH);
         }
         return AGENT_PACKAGE_PATH;
     }
@@ -49,30 +48,32 @@ public class AgentPackagePath {
     }
 
     private static File findPath() throws AgentPackageNotFoundException {
-        String classResourcePath = AgentPackagePath.class.getName().replaceAll("\\.", "/") + ".class";
+        // 将全类名中的.替换成/
         // org/apache/skywalking/apm/agent/core/boot/AgentPackagePath.class
-        System.out.println("find path = " + classResourcePath);
+        String classResourcePath = AgentPackagePath.class.getName().replaceAll("\\.", "/") + ".class";
+        // 使用 AppClassLoader 加载资源，通常情况下 AgentPackagePath 类是被 AppClassLoader 加载的。
         URL resource = ClassLoader.getSystemClassLoader().getResource(classResourcePath);
         if (resource != null) {
             String urlString = resource.toString();
             //jar:file:/E:/develop/source/sample/source/skywalking-java/skywalking-agent/skywalking-agent.jar!/org/apache/skywalking/apm/agent/core/boot/AgentPackagePath.class
             LOGGER.debug("The beacon class location is {}.", urlString);
 
+            // 判断 url 中是否包含!，如果包含则说明 AgentPackagePath.class 是包含在jar中。
             int insidePathIndex = urlString.indexOf('!');
             boolean isInJar = insidePathIndex > -1;
 
             if (isInJar) {
-                urlString = urlString.substring(urlString.indexOf("file:"), insidePathIndex);
                 // file:/E:/develop/source/sample/source/skywalking-java/skywalking-agent/skywalking-agent.jar
-                System.out.println("urlString = " + urlString);
+                urlString = urlString.substring(urlString.indexOf("file:"), insidePathIndex);
                 File agentJarFile = null;
                 try {
+                    // E:\develop\source\sample\source\skywalking-java\skywalking-agent\skywalking-agent.jar
                     agentJarFile = new File(new URL(urlString).toURI());
                 } catch (MalformedURLException | URISyntaxException e) {
                     LOGGER.error(e, "Can not locate agent jar file by url:" + urlString);
                 }
                 if (agentJarFile.exists()) {
-                    // 返回skywalking-agent.jar文件所在的目录
+                    // 返回 skywalking-agent.jar 文件所在的目录
                     return agentJarFile.getParentFile();
                 }
             } else {
