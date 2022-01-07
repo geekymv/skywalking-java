@@ -18,6 +18,10 @@
 
 package org.apache.skywalking.apm.commons.datacarrier.buffer;
 
+/**
+ * BLOCKING 写入线程阻塞等待，直到数据被消费为止
+ * IF_POSSIBLE 如果无法写入则直接返回false，由应用程序判断如何处理
+ */
 public enum BufferStrategy {
     BLOCKING, IF_POSSIBLE
 }

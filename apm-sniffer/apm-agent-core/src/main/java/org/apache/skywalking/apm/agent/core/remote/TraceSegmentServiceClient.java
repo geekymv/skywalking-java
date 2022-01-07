@@ -51,7 +51,7 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
     private long lastLogTime;
     private long segmentUplinkedCounter;
     private long segmentAbandonedCounter;
-    // 内存队列
+    // 内存MQ队列
     private volatile DataCarrier<TraceSegment> carrier;
     private volatile TraceSegmentReportServiceGrpc.TraceSegmentReportServiceStub serviceStub;
     private volatile GRPCChannelStatus status = GRPCChannelStatus.DISCONNECT;

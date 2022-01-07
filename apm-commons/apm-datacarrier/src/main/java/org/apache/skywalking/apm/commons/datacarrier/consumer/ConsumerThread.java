@@ -67,7 +67,7 @@ public class ConsumerThread<T> extends Thread {
 
     private boolean consume(List<T> consumeList) {
         for (DataSource dataSource : dataSources) {
-            // 从 queue buffer 中取出消息放入 list 中
+            // 批量消费，从 queue buffer 中取出消息放入 consumeList 中
             dataSource.obtain(consumeList);
         }
 

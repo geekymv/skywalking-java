@@ -46,6 +46,7 @@ public class Channels<T> {
     }
 
     public boolean save(T data) {
+        // 从 bufferChannels[] 数组中选择一个 queue buffer
         int index = dataPartitioner.partition(bufferChannels.length, data);
         int retryCountDown = 1;
         if (BufferStrategy.IF_POSSIBLE.equals(strategy)) {
