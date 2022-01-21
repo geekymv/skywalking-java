@@ -202,6 +202,7 @@ public class AgentClassLoader extends ClassLoader {
 
     private LinkedList<Jar> doGetJars() {
         LinkedList<Jar> jars = new LinkedList<>();
+        // 从 classpath 目录下查找
         for (File path : classpath) {
             if (path.exists() && path.isDirectory()) {
                 // 查找目录下所有的.jar文件
