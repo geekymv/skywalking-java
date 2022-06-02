@@ -47,7 +47,7 @@ public final class GlobalIdGenerator {
             '.',
             PROCESS_ID, // 应用进程ID
             String.valueOf(Thread.currentThread().getId()), // 线程ID
-            String.valueOf(THREAD_ID_SEQUENCE.get().nextSeq()) // 时间戳 * 10000 + 线程自增序列
+            String.valueOf(THREAD_ID_SEQUENCE.get().nextSeq()) // 当前时间戳 * 10000 + 当前线程自增序列[0,9999]
         );
     }
 
