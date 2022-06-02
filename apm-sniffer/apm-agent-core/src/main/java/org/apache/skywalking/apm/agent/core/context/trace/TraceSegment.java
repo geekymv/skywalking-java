@@ -27,6 +27,8 @@ import org.apache.skywalking.apm.agent.core.context.ids.NewDistributedTraceId;
 import org.apache.skywalking.apm.network.language.agent.v3.SegmentObject;
 
 /**
+ * 一个 JVM 进程的所有操作构成一个 segment
+ * 一个 segment 有多个 span
  * {@link TraceSegment} is a segment or fragment of the distributed trace. See https://github.com/opentracing/specification/blob/master/specification.md#the-opentracing-data-model
  * A {@link TraceSegment} means the segment, which exists in current {@link Thread}. And the distributed trace is formed
  * by multi {@link TraceSegment}s, because the distributed trace crosses multi-processes, multi-threads. <p>
@@ -34,6 +36,7 @@ import org.apache.skywalking.apm.network.language.agent.v3.SegmentObject;
 public class TraceSegment {
     /**
      * The id of this trace segment. Every segment has its unique-global-id.
+     * 每一个 segment 有全局唯一的ID
      */
     private String traceSegmentId;
 
@@ -43,13 +46,14 @@ public class TraceSegment {
      * we only cache the first parent segment reference.
      * <p>
      * This field will not be serialized. Keeping this field is only for quick accessing.
-     * 父 TraceSegment
+     * 父 TraceSegment 引用，保持和父 segment 关联，为了快速访问，不会持久化
      */
     private TraceSegmentRef ref;
 
     /**
      * The spans belong to this trace segment. They all have finished. All active spans are hold and controlled by
      * "skywalking-api" module.
+     * 当前 segment 所有完成的 span
      */
     private List<AbstractTracingSpan> spans;
 
@@ -57,6 +61,7 @@ public class TraceSegment {
      * The <code>relatedGlobalTraceId</code> represent the related trace. Most time it related only one
      * element, because only one parent {@link TraceSegment} exists, but, in batch scenario, the num becomes greater
      * than 1, also meaning multi-parents {@link TraceSegment}. But we only related the first parent TraceSegment.
+     * 父 segment id
      */
     private DistributedTraceId relatedGlobalTraceId;
 
@@ -72,6 +77,9 @@ public class TraceSegment {
     public TraceSegment() {
         this.traceSegmentId = GlobalIdGenerator.generate();
         this.spans = new LinkedList<>();
+        /**
+         * 设置 父 segment id，这里是新创建一个全局唯一ID，可以通过 {@link TraceSegment#relatedGlobalTrace} 关联一个 segment id
+         */
         this.relatedGlobalTraceId = new NewDistributedTraceId();
         this.createTime = System.currentTimeMillis();
     }
