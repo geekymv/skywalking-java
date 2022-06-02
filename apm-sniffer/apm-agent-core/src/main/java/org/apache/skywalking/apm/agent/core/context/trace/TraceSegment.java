@@ -61,7 +61,7 @@ public class TraceSegment {
      * The <code>relatedGlobalTraceId</code> represent the related trace. Most time it related only one
      * element, because only one parent {@link TraceSegment} exists, but, in batch scenario, the num becomes greater
      * than 1, also meaning multi-parents {@link TraceSegment}. But we only related the first parent TraceSegment.
-     * 父 segment id
+     * 父 segment trace id (父 segment 的 relatedGlobalTraceId)
      */
     private DistributedTraceId relatedGlobalTraceId;
 
@@ -78,7 +78,7 @@ public class TraceSegment {
         this.traceSegmentId = GlobalIdGenerator.generate();
         this.spans = new LinkedList<>();
         /**
-         * 设置 父 segment id，这里是新创建一个全局唯一ID，可以通过 {@link TraceSegment#relatedGlobalTrace} 关联一个 segment id
+         * 设置 trace id，这里是新创建一个全局唯一ID，可以通过 {@link TraceSegment#relatedGlobalTrace} 关联一个父 segment 的 trace id
          */
         this.relatedGlobalTraceId = new NewDistributedTraceId();
         this.createTime = System.currentTimeMillis();
