@@ -49,6 +49,7 @@ public final class GlobalIdGenerator {
             String.valueOf(Thread.currentThread().getId()), // 线程ID
             String.valueOf(THREAD_ID_SEQUENCE.get().nextSeq()) // 当前时间戳 * 10000 + 当前线程自增序列[0,9999]
         );
+        // 关于ThreadLocal 第一次从当前线程的 ThreadLocalMap 中获取关联的值，如果获取不到就调用 initialValue 方法初始化
     }
 
     private static class IDContext {
