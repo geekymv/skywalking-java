@@ -33,6 +33,8 @@ import lombok.ToString;
  * <p>
  * The <code>DistributedTraceId</code> contains only one string, and can NOT be reset, creating a new instance is the
  * only option.
+ * trace id 代表了一个分布式调用链路，整个链路使用同一个trace id。
+ * 使用 final 修饰，初始化之后不可以修改。
  */
 @RequiredArgsConstructor
 @ToString
