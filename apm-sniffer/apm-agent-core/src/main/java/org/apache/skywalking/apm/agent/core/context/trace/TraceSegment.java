@@ -29,6 +29,7 @@ import org.apache.skywalking.apm.network.language.agent.v3.SegmentObject;
 /**
  * 一个 JVM 进程的所有操作构成一个 segment
  * 一个 segment 有多个 span
+ * 多个 segment 组成一个 trace（trace 是一个逻辑概念）
  * {@link TraceSegment} is a segment or fragment of the distributed trace. See https://github.com/opentracing/specification/blob/master/specification.md#the-opentracing-data-model
  * A {@link TraceSegment} means the segment, which exists in current {@link Thread}. And the distributed trace is formed
  * by multi {@link TraceSegment}s, because the distributed trace crosses multi-processes, multi-threads. <p>

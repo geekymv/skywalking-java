@@ -69,6 +69,7 @@ public class TraceSegmentRef {
 
     public SegmentReference transform() {
         SegmentReference.Builder refBuilder = SegmentReference.newBuilder();
+        // 跨进程、跨线程
         if (SegmentRefType.CROSS_PROCESS.equals(type)) {
             refBuilder.setRefType(RefType.CrossProcess);
         } else {
