@@ -27,7 +27,7 @@ import org.apache.skywalking.apm.agent.core.context.ids.NewDistributedTraceId;
 import org.apache.skywalking.apm.network.language.agent.v3.SegmentObject;
 
 /**
- * 一个 JVM 进程的所有操作构成一个 segment
+ * 一个 JVM 线程的所有操作构成一个 segment
  * 一个 segment 有多个 span
  * 多个 segment 组成一个 trace（trace 是一个逻辑概念）
  * {@link TraceSegment} is a segment or fragment of the distributed trace. See https://github.com/opentracing/specification/blob/master/specification.md#the-opentracing-data-model
