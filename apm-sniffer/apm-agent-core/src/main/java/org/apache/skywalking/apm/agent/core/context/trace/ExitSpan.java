@@ -33,7 +33,8 @@ import org.apache.skywalking.apm.network.trace.component.Component;
  * <p>
  * Such as: Dubbox - Apache Httpcomponent - ...(Remote) The <code>ExitSpan</code> represents the Dubbox span, and ignore
  * the httpcomponent span's info.
- * ExitSpan 记录的是消费侧（比如Feign、Okhttp client），只代表第一个（stackDepth为1）
+ * ExitSpan 记录的是消费侧（比如Feign、Okhttp client），只代表第一个（stackDepth为1），
+ * 插件嵌套的情况下会复用（比如 Tomcat 会复用 SpringMVC 创建的ExitSpan）
  * EntrySpan 记录的是服务侧的信息。
  */
 public class ExitSpan extends StackBasedTracingSpan implements ExitTypeSpan {

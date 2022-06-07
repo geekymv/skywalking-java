@@ -32,7 +32,7 @@ import org.apache.skywalking.apm.network.trace.component.Component;
  * <p>
  * Such as: Tomcat Embed - Dubbox The <code>EntrySpan</code> represents the Dubbox span.
  * 
- * 会尝试创建多个 EntrySpan ，只有第一个 EntrySpan 会创建，其他会复用第一个EntrySpan，
+ * 会尝试创建多个 EntrySpan ，只有第一个 EntrySpan 会创建，其他会复用第一个EntrySpan（比如 SpringMVC 的 EntrySpan 会复用 Tomcat 的 EntrySpan）
  * 共用的 EntrySpan 携带了最后一个 EntrySpan 的 tags 和 logs。
  */
 public class EntrySpan extends StackBasedTracingSpan {
