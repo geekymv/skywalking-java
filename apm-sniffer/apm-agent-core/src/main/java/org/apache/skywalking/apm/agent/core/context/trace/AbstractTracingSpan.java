@@ -264,6 +264,7 @@ public abstract class AbstractTracingSpan implements AbstractSpan {
         spanBuilder.setEndTime(endTime);
         spanBuilder.setOperationName(operationName);
         spanBuilder.setSkipAnalysis(skipAnalysis);
+        // 设置 span type
         if (isEntry()) {
             spanBuilder.setSpanType(SpanType.Entry);
         } else if (isExit()) {

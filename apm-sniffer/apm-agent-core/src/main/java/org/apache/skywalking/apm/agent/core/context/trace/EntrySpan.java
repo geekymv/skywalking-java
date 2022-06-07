@@ -31,9 +31,14 @@ import org.apache.skywalking.apm.network.trace.component.Component;
  * But with the last <code>EntrySpan</code>'s tags and logs, which have more details about a service provider.
  * <p>
  * Such as: Tomcat Embed - Dubbox The <code>EntrySpan</code> represents the Dubbox span.
+ * 
+ * 会尝试创建多个 EntrySpan ，只有第一个 EntrySpan 会创建，其他会复用第一个EntrySpan，
+ * 共用的 EntrySpan 携带了最后一个 EntrySpan 的 tags 和 logs。
  */
 public class EntrySpan extends StackBasedTracingSpan {
 
+    // 栈的最大深度 currentMaxDepth 会一直递增
+    // 栈深度 stackDepth 随着入栈（调用start方法）和出栈（调用finish方法）而增加和减少
     private int currentMaxDepth;
 
     public EntrySpan(int spanId, int parentSpanId, String operationName, TracingContext owner) {
@@ -47,14 +52,17 @@ public class EntrySpan extends StackBasedTracingSpan {
     @Override
     public EntrySpan start() {
         if ((currentMaxDepth = ++stackDepth) == 1) {
+            // 只有第一个 EntrySpan 会创建（栈深度为1）
             super.start();
         }
+        // 调用 start 会清空 span 附带的信息（tags、logs ...）
         clearWhenRestart();
         return this;
     }
 
     @Override
     public EntrySpan tag(String key, String value) {
+        // 等于栈最大深度的 EntrySpan 被认为是最后一个 EntrySpan（它可以携带 tags、logs...）
         if (stackDepth == currentMaxDepth || isInAsyncMode) {
             super.tag(key, value);
         }
