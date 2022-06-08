@@ -17,5 +17,34 @@ docker run -itd --name es7 \
 
 - SkyWalking
 ```shell
-docker pull 
+https://hub.docker.com/r/apache/skywalking-oap-server
+
+docker pull apache/skywalking-oap-server:8.7.0-es7
+
+docker run -itd --name oap \
+-p 12800:12800 -p 11800:11800 \
+--link es7:es7 \
+-e SW_STORAGE=elasticsearch7 \
+-e SW_STORAGE_ES_CLUSTER_NODES=es7:9200 \
+apache/skywalking-oap-server:8.7.0-es7
+
+
 ```
+http://t.zoukankan.com/fsckzy-p-15796933.html
+apache/skywalking-oap-server:8.8.1
+会报错 no provider found for module storage
+
+SkyWalking UI
+```shell
+https://hub.docker.com/r/apache/skywalking-ui
+
+docker pull apache/skywalking-ui:8.8.1
+
+docker run -itd --name oap-ui \
+-p 9090:8080 \
+--link oap:oap \
+-e SW_OAP_ADDRESS=http://oap:12800 \
+apache/skywalking-ui:8.8.1
+
+```
+
