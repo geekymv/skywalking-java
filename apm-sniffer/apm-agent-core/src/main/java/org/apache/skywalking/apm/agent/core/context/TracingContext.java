@@ -143,8 +143,8 @@ public class TracingContext implements AbstractTracerContext {
      * @param carrier to carry the context for crossing process.
      * @throws IllegalStateException if (1) the active span isn't an exit one. (2) doesn't include peer. Ref to {@link
      *                               AbstractTracerContext#inject(ContextCarrier)}
-     * 将 ExitSpan 注入到 ContextCarrier
-     * 用于跨进程传播
+     * 将 Trace 信息注入到 ContextCarrier
+     * 在 ExitSpan 中使用，用于跨进程传播链路信息
      */
     @Override
     public void inject(ContextCarrier carrier) {
