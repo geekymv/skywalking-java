@@ -37,6 +37,11 @@ import static org.apache.skywalking.apm.agent.core.conf.Config.Agent.OPERATION_N
  * https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans
  *
  * <p> Also, {@link ContextManager} delegates to all {@link AbstractTracerContext}'s major methods.
+ *
+ * ContextManager 主要要负责（提供给插件使用）
+ * 1.获取或创建 TracingContext
+ * 2.创建 EntrySpan、LocalSpan、ExistSpan
+ * 3.停止 Span
  */
 public class ContextManager implements BootService {
     private static final String EMPTY_TRACE_CONTEXT_ID = "N/A";
@@ -48,6 +53,7 @@ public class ContextManager implements BootService {
     private static AbstractTracerContext getOrCreate(String operationName, boolean forceSampling) {
         AbstractTracerContext context = CONTEXT.get();
         if (context == null) {
+            // 从 ThreadLocal 中没有获取到 TracingContext
             if (StringUtil.isEmpty(operationName)) {
                 if (LOGGER.isDebugEnable()) {
                     LOGGER.debug("No operation name, ignore this trace.");
@@ -57,6 +63,7 @@ public class ContextManager implements BootService {
                 if (EXTEND_SERVICE == null) {
                     EXTEND_SERVICE = ServiceManager.INSTANCE.findService(ContextManagerExtendService.class);
                 }
+                // 创建 TracingContext
                 context = EXTEND_SERVICE.createTraceContext(operationName, forceSampling);
 
             }
@@ -101,9 +108,11 @@ public class ContextManager implements BootService {
             SamplingService samplingService = ServiceManager.INSTANCE.findService(SamplingService.class);
             samplingService.forceSampled();
             context = getOrCreate(operationName, true);
+            // 创建 TracingContext
             span = context.createEntrySpan(operationName);
             context.extract(carrier);
         } else {
+            // 创建 TracingContext
             context = getOrCreate(operationName, false);
             span = context.createEntrySpan(operationName);
         }
@@ -116,6 +125,9 @@ public class ContextManager implements BootService {
         return context.createLocalSpan(operationName);
     }
 
+    /**
+     * 需要继续向后传递 ContextCarrier 的 ExitSpan (比如 http client 调用其他 web 服务)
+     */
     public static AbstractSpan createExitSpan(String operationName, ContextCarrier carrier, String remotePeer) {
         if (carrier == null) {
             throw new IllegalArgumentException("ContextCarrier can't be null.");
@@ -127,6 +139,9 @@ public class ContextManager implements BootService {
         return span;
     }
 
+    /**
+     * 不需要继续后传递 ContextCarrier 的 ExitSpan（比如使用 jedis 访问redis，因为向 redis 传递trace信息也没有用，redis 并不会解析）
+     */
     public static AbstractSpan createExitSpan(String operationName, String remotePeer) {
         operationName = StringUtil.cut(operationName, OPERATION_NAME_THRESHOLD);
         AbstractTracerContext context = getOrCreate(operationName, false);
