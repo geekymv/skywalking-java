@@ -77,6 +77,12 @@ public class ContextCarrier implements Serializable {
         SW8ExtensionCarrierItem sw8ExtensionCarrierItem = new SW8ExtensionCarrierItem(extensionContext, null);
         SW8CorrelationCarrierItem sw8CorrelationCarrierItem = new SW8CorrelationCarrierItem(
             correlationContext, sw8ExtensionCarrierItem);
+        /**
+         * SW8CarrierItem(this, next) 将当前 ContextCarrier 携带的 trace 信息序列化（通过{@link ContextCarrier#serialize}）
+         * 并封装成CarrierItem（key为sw8）
+         * 在 ExitSpan 需要的地方向后传递，参见 httpclient-5.x-plugin 插件中 HttpClientDoExecuteInterceptor 的 beforeMethod 方法
+         * 将 items() 中的信息写入 http header
+         */
         SW8CarrierItem sw8CarrierItem = new SW8CarrierItem(this, sw8CorrelationCarrierItem);
         return new CarrierItemHead(sw8CarrierItem);
     }
