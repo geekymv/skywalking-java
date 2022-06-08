@@ -31,6 +31,8 @@ public interface AbstractTracerContext {
      */
     void inject(ContextCarrier carrier);
 
+    // 跨进程：inject 方法将数据打包进 ContextCarrier，extract 方法从 ContextCarrier 中提取数据
+
     /**
      * Build the reference between this segment and a cross-process segment. How to build, depends on the
      * implementation.
@@ -46,6 +48,8 @@ public interface AbstractTracerContext {
      * @return the {@link ContextSnapshot} , which includes the reference context.
      */
     ContextSnapshot capture();
+
+    // 跨线程：capture 和 continued
 
     /**
      * Build the reference between this segment and a cross-thread segment. How to build, depends on the
