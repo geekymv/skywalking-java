@@ -45,6 +45,7 @@ public class PluginFinder {
     private final List<AbstractClassEnhancePluginDefine> bootstrapClassMatchDefine = new ArrayList<AbstractClassEnhancePluginDefine>();
 
     public PluginFinder(List<AbstractClassEnhancePluginDefine> plugins) {
+        // 对插件分类
         for (AbstractClassEnhancePluginDefine plugin : plugins) {
             ClassMatch match = plugin.enhanceClass();
 
