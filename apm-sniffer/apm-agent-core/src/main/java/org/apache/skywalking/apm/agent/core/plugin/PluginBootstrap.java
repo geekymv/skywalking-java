@@ -74,6 +74,10 @@ public class PluginBootstrap {
             }
         }
 
+        /*
+        apm-customize-enhance-plugin 自定义增强插件
+        https://skywalking.apache.org/docs/skywalking-java/v8.8.0/en/setup/service-agent/java-agent/customize-enhance-trace/
+         */
         plugins.addAll(DynamicPluginLoader.INSTANCE.load(AgentClassLoader.getDefault()));
 
         return plugins;
