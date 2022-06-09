@@ -31,7 +31,7 @@ public interface AbstractTracerContext {
      */
     void inject(ContextCarrier carrier);
 
-    // 跨进程：inject 方法将数据打包进 ContextCarrier，extract 方法从 ContextCarrier 中提取数据
+    // 跨进程：inject 方法将数据打包进 ContextCarrier（serialize），extract 方法从 ContextCarrier 中提取数据（deserialize）
 
     /**
      * Build the reference between this segment and a cross-process segment. How to build, depends on the
