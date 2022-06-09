@@ -95,8 +95,9 @@ public class AgentClassLoader extends ClassLoader {
     }
 
     /**
-     * Class.forName(name, true, AgentClassLoader.getDefault()) 使用 AgentClassLoader 类加载器时，会调用这个 findClass 方法
-     * 具体见父类 ClassLoader 的 loadClass 方法
+     * Class.forName(name, true, AgentClassLoader.getDefault()) 使用 AgentClassLoader 类加载器时，
+     * JVM底层会调用 ClassLoader.loadClass 方法，ClassLoader 的 loadClass 方法的内部实现会调用这个子类的 findClass 方法。
+     * 具体参考 https://blog.csdn.net/alex_xfboy/article/details/89505173
      * @param name
      * @return
      * @throws ClassNotFoundException
