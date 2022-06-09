@@ -37,6 +37,7 @@ public class PluginResourcesResolver {
         List<URL> cfgUrlPaths = new ArrayList<URL>();
         Enumeration<URL> urls;
         try {
+            // getResources(name) 方法内部会调用 AgentClassLoader 重写的 findResources 方法
             urls = AgentClassLoader.getDefault().getResources("skywalking-plugin.def");
 
             while (urls.hasMoreElements()) {
