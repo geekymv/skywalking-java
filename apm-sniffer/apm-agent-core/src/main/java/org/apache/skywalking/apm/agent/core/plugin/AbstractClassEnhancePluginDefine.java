@@ -169,14 +169,14 @@ public abstract class AbstractClassEnhancePluginDefine {
 
     /**
      * Constructor methods intercept point. See {@link ConstructorInterceptPoint}
-     *
+     * 构造方法拦截点
      * @return collections of {@link ConstructorInterceptPoint}
      */
     public abstract ConstructorInterceptPoint[] getConstructorsInterceptPoints();
 
     /**
      * Instance methods intercept point. See {@link InstanceMethodsInterceptPoint}
-     *
+     * 实例方法拦截点
      * @return collections of {@link InstanceMethodsInterceptPoint}
      */
     public abstract InstanceMethodsInterceptPoint[] getInstanceMethodsInterceptPoints();
@@ -190,7 +190,7 @@ public abstract class AbstractClassEnhancePluginDefine {
 
     /**
      * Static methods intercept point. See {@link StaticMethodsInterceptPoint}
-     *
+     * 静态方法拦截点
      * @return collections of {@link StaticMethodsInterceptPoint}
      */
     public abstract StaticMethodsInterceptPoint[] getStaticMethodsInterceptPoints();
