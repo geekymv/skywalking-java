@@ -58,7 +58,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
 
     /**
      * Enhance a class to intercept constructors and class instance methods.
-     *
+     * 增强类的构造方法和实例方法
      * @param typeDescription target class description
      * @param newClassBuilder byte-buddy's builder to manipulate class bytecode.
      * @return new byte-buddy's builder for further manipulation.
@@ -104,7 +104,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
         if (!typeDescription.isAssignableTo(EnhancedInstance.class)) {
             // 待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）还没有实现 EnhancedInstance 接口
             if (!context.isObjectExtended()) {
-                // 给类增加一个属性并给属性增加访问器，让类实现 EnhancedInstance 接口
+                // 给类增加一个属性并给属性增加访问器，让类实现 EnhancedInstance 接口，通过访问接口中的 setter getter 方法去访问这个属性
                 newClassBuilder = newClassBuilder.defineField(
                     CONTEXT_ATTR_NAME, Object.class, ACC_PRIVATE | ACC_VOLATILE)
                                                  .implement(EnhancedInstance.class)
@@ -180,7 +180,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
 
     /**
      * Enhance a class to intercept class static methods.
-     *
+     * 增强类的静态方法
      * @param typeDescription target class description
      * @param newClassBuilder byte-buddy's builder to manipulate class bytecode.
      * @return new byte-buddy's builder for further manipulation.
