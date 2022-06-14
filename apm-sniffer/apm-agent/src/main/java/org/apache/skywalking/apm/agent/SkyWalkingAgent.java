@@ -199,7 +199,7 @@ public class SkyWalkingAgent {
             if (LOGGER.isDebugEnable()) {
                 LOGGER.debug("On Transformation class {}.", typeDescription.getName());
             }
-
+            // 保存已增强的类的class文件到 debugging 目录
             InstrumentDebuggingClass.INSTANCE.log(dynamicType);
         }
 
