@@ -54,6 +54,7 @@ public class PluginFinder {
             }
 
             if (match instanceof NameMatch) {
+                // 类名匹配
                 NameMatch nameMatch = (NameMatch) match;
                 // 根据待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）找到对应的增强插件
                 LinkedList<AbstractClassEnhancePluginDefine> pluginDefines = nameMatchDefine.get(nameMatch.getClassName());
@@ -63,10 +64,12 @@ public class PluginFinder {
                 }
                 pluginDefines.add(plugin);
             } else {
+                // 间接匹配
                 signatureMatchDefine.add(plugin);
             }
 
             if (plugin.isBootstrapInstrumentation()) {
+                // JDK 内置类
                 bootstrapClassMatchDefine.add(plugin);
             }
         }
