@@ -155,7 +155,7 @@ public class SkyWalkingAgent {
                                                 final ClassLoader classLoader,
                                                 final JavaModule module) {
             LoadedLibraryCollector.registerURLClassLoader(classLoader);
-            // 根据待增强类（比如 com.alibaba.dubbo.monitor.support.MonitorFilter ）找到对应的增强插件
+            // 根据目标类（比如 tomcat 中的 org.apache.catalina.core.StandardHostValve 类 ）找到对应的增强插件定义类
             List<AbstractClassEnhancePluginDefine> pluginDefines = pluginFinder.find(typeDescription);
             if (pluginDefines.size() > 0) {
                 DynamicType.Builder<?> newBuilder = builder;
