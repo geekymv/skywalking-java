@@ -318,8 +318,9 @@ newClassBuilder = newClassBuilder.method(junction)
                                  .to(new InstMethodsInter(interceptor, classLoader)));
 ```
 在这里我们将看到一个最重要的类 `InstMethodsInter`，它是 Byte Buddy 拦截实例方法的拦截器，同时它是 Byte Buddy 和 SkyWalking 插件的桥梁。
-在介绍 `InstMethodsInter` 之前我们先看看我们在插件中定义的拦截器，比如上面提到的 Tomcat 插件中 `invoke` 方法对应的方法拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor`，
-它实现了 `InstanceMethodsAroundInterceptor` 接口，声明如下：
+
+在介绍 `InstMethodsInter` 之前我们先看看我们在插件中定义的拦截器，比如上面提到的 Tomcat 插件中 `invoke` 方法对应的方法拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor`，它实现了 `InstanceMethodsAroundInterceptor` 接口，声明如下：
+
 ```java
 /**
  * A interceptor, which intercept method's invocation. The target methods will be defined in {@link
@@ -442,8 +443,8 @@ public class InstMethodsInter {
 - interceptor 插件定义类中拦截点声明的拦截器全类名；
 - classLoader 加载待增强目标类的类加载器。
 
-`InstMethodsInter` 的构造方法接收到的是插件拦截器的全类名，那么我们如何获取到插件拦截器实例呢？这个时候我们想到了类加载器，由于插件拦截器是定义在插件 jar 里面的，可以像插件定义类一样通过 AgentClassLoader
-来加载，插件定义类是这么被加载并实例化的
+`InstMethodsInter` 的构造方法接收到的是插件拦截器的全类名，那么我们如何获取到插件拦截器实例呢？这个时候我们想到了类加载器，由于插件拦截器是定义在插件 jar 里面的，可以像插件定义类一样通过 `AgentClassLoader`来加载，插件定义类是这么被加载并实例化的
+
 ```java
 AbstractClassEnhancePluginDefine plugin = (AbstractClassEnhancePluginDefine) Class.forName(pluginDefine.getDefineClass(), true, AgentClassLoader.getDefault()).newInstance();
 ```
@@ -452,8 +453,9 @@ AbstractClassEnhancePluginDefine plugin = (AbstractClassEnhancePluginDefine) Cla
 InstanceMethodsAroundInterceptor interceptor = (InstanceMethodsAroundInterceptor) Class.forName(instanceMethodsAroundInterceptorClassName, true, AgentClassLoader.getDefault()).newInstance();
 ```
 看起来好像可以，但是根据类加载器的隔离机制，我们自定义的类加载器 `AgentClassLoader` 加载的类，获取不到待增强目标类的相关类，因为目标类和拦截器类是由不同的类加载器加载的，目标类是由 `InstMethodsInter` 的构造方法接收到的 classLoader 加载的。
-根据类加载器的委托机制，子加载器可以看到父加载器加载的类，父加载器看不到子加载器加载的类，插件中的拦截器需要使用目标类中的相关代码，比如 Tomcat 插件中的拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor` 需要通过 Tomcat 提供的 API 获取请求URL、请求Method 等，
-所以我们可以将目标类的类加载器设置为 `AgentClassLoader` 的父加载器，这样插件中的拦截器就可以使用目标类中的相关代码了。SkyWalking 也确实是这么实现的，`InstMethodsInter` 的构造方法通过 `InterceptorInstanceLoader` 加载插件中定义的拦截器实例，后面会分析相关实现。
+
+根据类加载器的委托机制，子加载器可以看到父加载器加载的类，父加载器看不到子加载器加载的类，插件中的拦截器需要使用目标类中的相关代码，比如 Tomcat 插件中的拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor` 需要通过 Tomcat 提供的 API 获取请求URL、请求Method 等，所以我们可以将目标类的类加载器设置为 `AgentClassLoader` 的父加载器，这样插件中的拦截器就可以使用目标类中的相关代码了。SkyWalking 也确实是这么实现的，`InstMethodsInter` 的构造方法通过 `InterceptorInstanceLoader` 加载插件中定义的拦截器实例，后面会分析相关实现。
+
 ```java
 /**
  * @param instanceMethodsAroundInterceptorClassName class full name.
@@ -467,8 +469,7 @@ public InstMethodsInter(String instanceMethodsAroundInterceptorClassName, ClassL
     }
 }
 ```
-拦截器实例获取到了，下面就该执行拦截器中的三个方法（`beforeMethod`、`afterMethod`、`handleMethodException`）了，`InstMethodsInter#intercept` 方法就是 Byte Buddy 中的拦截器方法，当调用我们的目标方法时，
-会执行 `Java Agent` 中的拦截器方法，我们看下 `intercept` 方法具体实现，其实很简单，就是使用`try catch finally`在调用目标方法前、方法后、异常三种情况下分别调用插件中拦截器的三个方法，下面是具体代码实现：
+拦截器实例获取到了，下面就该执行拦截器中的三个方法（`beforeMethod`、`afterMethod`、`handleMethodException`）了，`InstMethodsInter#intercept` 方法就是 Byte Buddy 中的拦截器方法，当调用我们的目标方法时，会执行 `Java Agent` 中的拦截器方法，我们看下 `intercept` 方法具体实现，其实很简单，就是使用`try catch finally`在调用目标方法前、方法后、异常三种情况下分别调用插件中拦截器的三个方法，下面是具体代码实现：
 ```java
 /**
  * Intercept the target instance method.
@@ -588,8 +589,7 @@ public class InterceptorInstanceLoader {
     }
 }
 ```
-最后明确一点 `skywalking-agent.jar` 中的所有类和我们的应用程序中的类（待增强的目标类）一起是由 AppClassLoader 类加载器加载的，而我们定义的一些插件是由自定义的类加载器 `AgentClassLoader` 加载的，应用程序中的类（目标类）和插件拦截器类他们之间是互相不可见的，
-需要将目标类的类加载器作为插件拦截器类的加载器 `AgentClassLoader` 的父加载器，这样插件拦截器类可以读取到目标类的相关类了。
+最后明确一点 `skywalking-agent.jar` 中的所有类和我们的应用程序中的类（待增强的目标类）一起是由 AppClassLoader 类加载器加载的，而我们定义的一些插件是由自定义的类加载器 `AgentClassLoader` 加载的，应用程序中的类（目标类）和插件拦截器类他们之间是互相不可见的，需要将目标类的类加载器作为插件拦截器类的加载器 `AgentClassLoader` 的父加载器，这样插件拦截器类可以读取到目标类的相关类了。
 
 
 
