@@ -82,6 +82,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
 
         /**
          * nothing need to be enhanced in class instance, maybe need enhance static methods.
+         * 构造方法拦截点和实例方法拦截点都没有定义的话，直接返回
          */
         if (!existedConstructorInterceptPoint && !existedMethodsInterceptPoints) {
             return newClassBuilder;
@@ -141,6 +142,7 @@ public abstract class ClassEnhancePluginDefine extends AbstractClassEnhancePlugi
          */
         if (existedMethodsInterceptPoints) {
             for (InstanceMethodsInterceptPoint instanceMethodsInterceptPoint : instanceMethodsInterceptPoints) {
+                // 遍历实例方法拦截点，获取实例方法拦截器的名称
                 String interceptor = instanceMethodsInterceptPoint.getMethodsInterceptor();
                 if (StringUtil.isEmpty(interceptor)) {
                     throw new EnhanceException("no InstanceMethodsAroundInterceptor define to enhance class " + enhanceOriginClassName);

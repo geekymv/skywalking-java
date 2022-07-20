@@ -51,7 +51,9 @@ public enum WitnessFinder {
         ClassLoader mappingKey = classLoader == null ? NullClassLoader.INSTANCE : classLoader;
         if (!poolMap.containsKey(mappingKey)) {
             synchronized (poolMap) {
+                // double check
                 if (!poolMap.containsKey(mappingKey)) {
+                    // classLoader == null 代表 bootstrap class loader
                     TypePool classTypePool = classLoader == null ? TypePool.Default.ofBootLoader() : TypePool.Default.of(classLoader);
                     poolMap.put(mappingKey, classTypePool);
                 }

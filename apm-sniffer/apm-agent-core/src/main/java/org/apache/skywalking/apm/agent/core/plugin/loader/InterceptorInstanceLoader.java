@@ -52,14 +52,17 @@ public class InterceptorInstanceLoader {
         if (targetClassLoader == null) {
             targetClassLoader = InterceptorInstanceLoader.class.getClassLoader();
         }
+        // 插件拦截器类实例的缓存key
         String instanceKey = className + "_OF_" + targetClassLoader.getClass()
                                                                    .getName() + "@" + Integer.toHexString(targetClassLoader
             .hashCode());
+        // 从缓存中获取拦截器类实例
         Object inst = INSTANCE_CACHE.get(instanceKey);
         if (inst == null) {
             INSTANCE_LOAD_LOCK.lock();
             ClassLoader pluginLoader;
             try {
+                // 根据目标类加载器获取插件拦截器类加载器（一个目标类加载器实例对应一个插件拦截器类加载器实例）
                 pluginLoader = EXTEND_PLUGIN_CLASSLOADERS.get(targetClassLoader);
                 if (pluginLoader == null) {
                     // 创建一个指定 parent ClassLoader 的 AgentClassLoader 实例，用于加载插件类，这样插件代码才能使用目标类的相关类（类加载器的委托机制）
@@ -70,6 +73,7 @@ public class InterceptorInstanceLoader {
             } finally {
                 INSTANCE_LOAD_LOCK.unlock();
             }
+            // 使用 AgentClassLoader 加载插件拦截器，并实例化
             inst = Class.forName(className, true, pluginLoader).newInstance();
             if (inst != null) {
                 INSTANCE_CACHE.put(instanceKey, inst);

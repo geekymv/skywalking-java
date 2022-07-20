@@ -124,7 +124,7 @@ public class ContextCarrier implements Serializable {
                 "1",
                 Base64.encode(this.getTraceId()),
                 Base64.encode(this.getTraceSegmentId()),
-                this.getSpanId() + "",
+                this.getSpanId() + "", // parent span id
                 Base64.encode(this.getParentService()),
                 Base64.encode(this.getParentServiceInstance()),
                 Base64.encode(this.getParentEndpoint()),
