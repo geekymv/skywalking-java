@@ -1,6 +1,6 @@
 Apache SkyWalking Java Agent 08-增强实例方法
 
-通过上一篇文章[Apache SkyWalking Java Agent 06-插件定义体系]()我们了解到插件定义顶层类 `AbstractClassEnhancePluginDefine` 是一个抽象类，它提供了如何对目标类增强的模版方法，define 方法是增强目标类的主要入口，define 方法内部调用了两个抽象方法 `enhanceInstance` 和 `enhanceClass` 方法，分别用于增强实例方法（包括构造方法）、静态方法，由具体子类实现。
+通过上一篇文章[Apache SkyWalking Java Agent 06-插件定义体系](https://juejin.cn/post/7109032881938235423)我们了解到插件定义顶层类 `AbstractClassEnhancePluginDefine` 是一个抽象类，它提供了如何对目标类增强的模版方法，define 方法是增强目标类的主要入口，define 方法内部调用了两个抽象方法 `enhanceInstance` 和 `enhanceClass` 方法，分别用于增强实例方法（包括构造方法）、静态方法，由具体子类实现。
 
 ### AbstractClassEnhancePluginDefine 插件定义的抽象
 
@@ -11,9 +11,7 @@ Apache SkyWalking Java Agent 08-增强实例方法
 `AbstractClassEnhancePluginDefine` 类定义了模版方法，子类 `ClassEnhancePluginDefine` 则控制了所有的增强操作，包括：
 
 - 增强构造方法、实例方法和静态方法；
-
 - 所有的增强基于三个拦截点 `ConstructorInterceptPoint`、`InstanceMethodsInterceptPoint`、`StaticMethodsInterceptPoint`；
-
 - 如果插件增强构造方法、实例方法，或者其中一个，`ClassEnhancePluginDefine` 将会给目标类增加一个 Object 类型的属性。
 
 具体描述可以看`ClassEnhancePluginDefine` 类的 Javadoc 说明。
