@@ -4,7 +4,7 @@ Apache SkyWalking Java Agent 08-增强实例方法
 
 ### AbstractClassEnhancePluginDefine 插件定义的抽象
 
-`AbstractClassEnhancePluginDefine` 抽象类有两个直接抽象子类 `ClassEnhancePluginDefine`和 `ClassEnhancePluginDefineV2`，我们后面重点分析`ClassEnhancePluginDefine` 及其子类，看懂了`ClassEnhancePluginDefine ` 再去看 `ClassEnhancePluginDefineV2` 会很容易。
+`AbstractClassEnhancePluginDefine` 抽象类有两个直接抽象子类 `ClassEnhancePluginDefine`和 `ClassEnhancePluginDefineV2`，接下来我们重点分析`ClassEnhancePluginDefine` 及其子类，看懂了`ClassEnhancePluginDefine ` 再去看 `ClassEnhancePluginDefineV2` 会很容易。
 
 ### ClassEnhancePluginDefine 插件定义类
 
@@ -14,7 +14,7 @@ Apache SkyWalking Java Agent 08-增强实例方法
 
 - 所有的增强基于三个拦截点 `ConstructorInterceptPoint`、`InstanceMethodsInterceptPoint`、`StaticMethodsInterceptPoint`；
 
-- 如果插件增强构造方法、实例方法，或者其中一个，`ClassEnhancePluginDefine` 将会给目标类增加一个 Onject 类型的属性。
+- 如果插件增强构造方法、实例方法，或者其中一个，`ClassEnhancePluginDefine` 将会给目标类增加一个 Object 类型的属性。
 
 具体描述可以看`ClassEnhancePluginDefine` 类的 Javadoc 说明。
 
@@ -170,7 +170,7 @@ ConstructorInterceptPoint[] constructorInterceptPoints = getConstructorsIntercep
 // 获取实例方法拦截点
 InstanceMethodsInterceptPoint[] instanceMethodsInterceptPoints = getInstanceMethodsInterceptPoints();
 ```
-这一步是获取构造方法和实例方法的拦截点，`getConstructorsInterceptPoints` 和 `getInstanceMethodsInterceptPoints` 方法由具体的插件定义类实现，具体可以看下 Tomcat 的插件定义类 `TomcatInstrumentation` 的实现。
+这一步是获取构造方法和实例方法的拦截点，`getConstructorsInterceptPoints` 和 `getInstanceMethodsInterceptPoints` 方法由具体的插件定义类实现，具体可以看下 Tomcat 的插件定义类 `TomcatInstrumentation` 的实现，这里不再赘述。
 
 ```java
 boolean existedConstructorInterceptPoint = false;
@@ -311,13 +311,13 @@ public InstanceMethodsInterceptPoint[] getInstanceMethodsInterceptPoints() {
 `isBootstrapInstrumentation()` 方法用于判断待增强的目标类是否为JDK提供的类（这些类是由启动类加载器加载）；
 
 ### InstMethodsInter Byte Buddy 和 SkyWalking 插件之间的桥梁
-那么我们先看个最简单的逻辑，也就是不覆盖参数，也不是JDK提供的类，最后一个 else 里面的代码
+那么我们先看个最简单的逻辑，也就是不覆盖参数，也不是JDK提供的类，也就是最后一个 else 里面的代码
 ```java
 newClassBuilder = newClassBuilder.method(junction)
                                  .intercept(MethodDelegation.withDefaultConfiguration()
                                  .to(new InstMethodsInter(interceptor, classLoader)));
 ```
-在这里我们将看到一个最重要的类 `InstMethodsInter`，它是 Byte Buddy 拦截实例方法的拦截器，同时它是Byte Buddy 和 SkyWalking 插件的桥梁。
+在这里我们将看到一个最重要的类 `InstMethodsInter`，它是 Byte Buddy 拦截实例方法的拦截器，同时它是 Byte Buddy 和 SkyWalking 插件的桥梁。
 在介绍 `InstMethodsInter` 之前我们先看看我们在插件中定义的拦截器，比如上面提到的 Tomcat 插件中 `invoke` 方法对应的方法拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor`，
 它实现了 `InstanceMethodsAroundInterceptor` 接口，声明如下：
 ```java
@@ -442,17 +442,17 @@ public class InstMethodsInter {
 - interceptor 插件定义类中拦截点声明的拦截器全类名；
 - classLoader 加载待增强目标类的类加载器。
 
-`InstMethodsInter` 的构造方法接收到的是插件拦截器的全类名，那么我们如何获取到插件拦截器实例呢？这个时候我们想到了类加载器，由于插件拦截器是定义在插件里面的，可以像插件定义类一样通过 AgentClassLoader
+`InstMethodsInter` 的构造方法接收到的是插件拦截器的全类名，那么我们如何获取到插件拦截器实例呢？这个时候我们想到了类加载器，由于插件拦截器是定义在插件 jar 里面的，可以像插件定义类一样通过 AgentClassLoader
 来加载，插件定义类是这么被加载并实例化的
 ```java
 AbstractClassEnhancePluginDefine plugin = (AbstractClassEnhancePluginDefine) Class.forName(pluginDefine.getDefineClass(), true, AgentClassLoader.getDefault()).newInstance();
 ```
-那我们改造下
+那我们改造下，通过同样的方式加载插件中的拦截器实例
 ```java
 InstanceMethodsAroundInterceptor interceptor = (InstanceMethodsAroundInterceptor) Class.forName(instanceMethodsAroundInterceptorClassName, true, AgentClassLoader.getDefault()).newInstance();
 ```
 看起来好像可以，但是根据类加载器的隔离机制，我们自定义的类加载器 `AgentClassLoader` 加载的类，获取不到待增强目标类的相关类，因为目标类和拦截器类是由不同的类加载器加载的，目标类是由 `InstMethodsInter` 的构造方法接收到的 classLoader 加载的。
-根据类加载器的委托机制，子加载器可以看到父加载器加载的类，父加载器看不到子加载器加载的类，插件中的拦截器需要使用目标类中的相关代码，比如 Tomcat 插件中的拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor` 需要获取请求URL、请求Method等，
+根据类加载器的委托机制，子加载器可以看到父加载器加载的类，父加载器看不到子加载器加载的类，插件中的拦截器需要使用目标类中的相关代码，比如 Tomcat 插件中的拦截器 `org.apache.skywalking.apm.plugin.tomcat78x.TomcatInvokeInterceptor` 需要通过 Tomcat 提供的 API 获取请求URL、请求Method 等，
 所以我们可以将目标类的类加载器设置为 `AgentClassLoader` 的父加载器，这样插件中的拦截器就可以使用目标类中的相关代码了。SkyWalking 也确实是这么实现的，`InstMethodsInter` 的构造方法通过 `InterceptorInstanceLoader` 加载插件中定义的拦截器实例，后面会分析相关实现。
 ```java
 /**
@@ -468,7 +468,7 @@ public InstMethodsInter(String instanceMethodsAroundInterceptorClassName, ClassL
 }
 ```
 拦截器实例获取到了，下面就该执行拦截器中的三个方法（`beforeMethod`、`afterMethod`、`handleMethodException`）了，`InstMethodsInter#intercept` 方法就是 Byte Buddy 中的拦截器方法，当调用我们的目标方法时，
-会执行 `Java Agent` 中的拦截器方法，我们看下 `intercept` 具体实现，其实很简单，就是使用`try catch finally`在调用目标方法前、方法后、异常三种情况下分别调用插件中拦截器的三个方法，下面是具体代码实现：
+会执行 `Java Agent` 中的拦截器方法，我们看下 `intercept` 方法具体实现，其实很简单，就是使用`try catch finally`在调用目标方法前、方法后、异常三种情况下分别调用插件中拦截器的三个方法，下面是具体代码实现：
 ```java
 /**
  * Intercept the target instance method.
@@ -523,8 +523,11 @@ public Object intercept(@This Object obj, @AllArguments Object[] allArguments, @
 ```
 
 ### InterceptorInstanceLoader 加载插件拦截器
-下面我们重点看下 `InterceptorInstanceLoader` 加载插件拦截器相关代码
-`InterceptorInstanceLoader` 是一个类查找器和容器，理解下面代码需要有类加载器委托机制的相关知识。
+下面我们重点看下 `InterceptorInstanceLoader` 加载插件中的拦截器相关代码，`InterceptorInstanceLoader` 是一个类查找器和容器，理解下面代码需要有类加载器委托机制的相关知识。
+- 通过 `AgentClassLoader` 查找加载插件中的拦截器；
+- 通过 `Class.forName` 实例化拦截器；
+- 将拦截器实例缓存到 `ConcurrentHashMap` 中。
+
 ```java
 /**
  * The <code>InterceptorInstanceLoader</code> is a classes finder and container.
