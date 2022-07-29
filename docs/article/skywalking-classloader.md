@@ -16,3 +16,62 @@ Java类加载器双亲委托机制可能大家平常或多或少的都了解一�
 
 毫不夸张的说，自定义的类加载器AgentClassLoader 是 SkyWalking Java agent 非常核心的组成部分，通过它加载插件并实例化插件
 
+首先说下背景，SkyWalking 是什么以及它用来解决什么问题，
+为了不和我们的业务代码耦合，SkyWalking 通过使用 Java agent 技术实现无代码侵入的在我们的代码中进行埋点，从我们的业务代码中收集链路数据，发送给 SkyWalking 后端去分析、展示、告警等。
+
+skywalking agent -> skywalking backend
+
+SkyWalking Java agent 目录结构如下：
+```
++-- agent
+    +-- activations
+         apm-toolkit-log4j-1.x-activation.jar
+         apm-toolkit-log4j-2.x-activation.jar
+         apm-toolkit-logback-1.x-activation.jar
+         ...
+    +-- config
+         agent.config  
+    +-- plugins
+         apm-dubbo-plugin.jar
+         apm-feign-default-http-9.x.jar
+         apm-httpClient-4.x-plugin.jar
+         .....
+    +-- optional-plugins
+         apm-gson-2.x-plugin.jar
+         .....
+    +-- bootstrap-plugins
+         jdk-http-plugin.jar
+         .....
+    +-- logs
+    skywalking-agent.jar
+```
+比如我们有个使用 Sprig Boot 开发的应用，可以通过下面的形式配置 skywalking-agent.jar，然后再 config/agent.config 中指定SkyWalking 接收数据的地址就可以了
+ ```shell
+ java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
+ ```
+插件都放在 agent.jar 所在目录下的 plugins 和 activations 目录下，这样如果我们不需要某个插件，从目录中将jar包移出去就可以了，不用改一行代码。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
