@@ -45,7 +45,7 @@ SkyWalking Java agent 目录结构如下：
     +-- logs
     skywalking-agent.jar
 ```
-比如我们有个使用 Sprig Boot 开发的应用，可以通过下面的形式配置 skywalking-agent.jar，然后再 config/agent.config 中指定SkyWalking 接收数据的地址就可以了
+比如我们有个使用 Spring Boot 开发的应用，可以通过下面的形式配置 skywalking-agent.jar，然后在 config/agent.config 中指定 SkyWalking 后端接收数据的地址就可以了。
  ```shell
  java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
  ```
