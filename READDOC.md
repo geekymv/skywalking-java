@@ -82,7 +82,8 @@ services:
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx1024m"
+      - TZ=Asia/Shanghai
     ulimits:
       memlock:
         soft: -1
@@ -111,6 +112,7 @@ services:
       SW_HEALTH_CHECKER: default
       SW_TELEMETRY: prometheus
       JAVA_OPTS: "-Xms512m -Xmx1024m"
+      TZ: "Asia/Shanghai"
 
   ui:
     image: apache/skywalking-ui:9.2.0
@@ -124,8 +126,47 @@ services:
       - "8080:8080"
     environment:
       SW_OAP_ADDRESS: http://oap:12800
+      TZ: "Asia/Shanghai"
+  
+  mysql:
+    image: daocloud.io/library/mysql:5.7.7
+    container_name: mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - TZ=Asia/Shanghai
+    volumes:
+      - /Users/zyb/develop/data/mysql/conf:/etc/mysql/conf.d
+      - /Users/zyb/develop/data/mysql/data:/var/lib/mysql
+      
+  mysql-service:
+    image: prom/mysqld-exporter:v0.14.0
+    ports:
+      - 9104
+    environment:
+      - DATA_SOURCE_NAME=mysql_exporter:mysql_exporter@(mysql:3306)/
+      - TZ=Asia/Shanghai
+    depends_on:
+      - mysql
+  otel-collector:
+    image: otel/opentelemetry-collector:0.50.0
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - /Users/zyb/develop/data/apm/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    expose:
+      - 55678
+    depends_on:
+      oap:
+        condition: service_healthy    
 
 ```
 
+
+```shell
+create user 'mysql_exporter'@'%' identified by 'mysql_exporter';
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'mysql_exporter'@'%' WITH MAX_USER_CONNECTIONS 3;
+flush privileges;
+```
 
 
