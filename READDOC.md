@@ -137,8 +137,8 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - TZ=Asia/Shanghai
     volumes:
-      - /Users/zyb/develop/data/mysql/conf:/etc/mysql/conf.d
-      - /Users/zyb/develop/data/mysql/data:/var/lib/mysql
+      - ~/develop/data/mysql/conf:/etc/mysql/conf.d
+      - ~/develop/data/mysql/data:/var/lib/mysql
       
   mysql-service:
     image: prom/mysqld-exporter:v0.14.0
@@ -153,7 +153,7 @@ services:
     image: otel/opentelemetry-collector:0.50.0
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
-      - /Users/zyb/develop/data/apm/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ~/develop/data/apm/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     expose:
       - 55678
     depends_on:
