@@ -1,9 +1,15 @@
-Apache SkyWalking 修复了一个隐藏了近4年的Bug
+近期，Apache SkyWalking 修复了一个隐藏了近4年的Bug - TTL timer 可能失效问题，这个 bug 在 SkyWalking <=9.2.0 版本中存在。
+关于这个 bug 的详细信息可以看邮件列表 https://lists.apache.org/thread/ztp4b3kc6swsc6d5bm4bjnc11h0bdtkz 如下
+<img src="./skywalking-ttl-bug/ttl-bug.png" alt="skywalking-ttl-bug" style="zoom:50%;" />
 
-首先说下这个Bug的现象：
-- 过期的索引不能被删除，
+首先说下这个 Bug 导致的现象：
+- 过期的索引不能被删除，所有的OAP节点都出现类似日志 `The selected first getAddress is xxx.xxx.xx.xx:port. The remove stage is skipped.`
+- 对于以 `no-init` 模式启动的 OAP 节点，重启的时候会一直打印类似日志 `table:xxx does not exist. OAP is running in 'no-init' mode, waiting... retry 3s later.`
 
-我们先了解一下 SkyWalking OAP 集群方面的设计
+如果 SkyWalking OAP 出现上面的两个问题，很可能就是这个 Bug 导致的。
+
+下面我们先了解一下 SkyWalking OAP 集群方面的设计
+
 #### SkyWalking OAP 角色
 SkyWalking OAP 可选的角色有 Mixed、Receiver、Aggregator
 - Mixed 角色主要负责接收数据、L1聚合和L2聚合；
@@ -24,7 +30,10 @@ core:
     
 # 省略部分配置...  
 ```
-Receiver 接收 agent 发送的数据，将数据做L1聚合，多个 Receiver 会将接收的数据，根据指定的路由策略将数据发送给 Aggregator 做L2聚合。
+
+L1聚合：为了减少内存及网络负载，对于接收到的 metrics 数据进行当前 OAP 节点内的聚合，具体实现参考 `MetricsAggregateWorker#onWork()` 方法的实现；
+
+L2聚合：又称分布式聚合，OAP 节点将L1聚合后的数据，根据一定的路由规则，发送给集群中的其他OAP节点，进行二次聚合，并入库。具体实现见 `MetricsPersistentWorker` 类。
 
 
 #### SkyWalking OAP 集群
@@ -34,6 +43,7 @@ OAP 支持集群部署，目前支持的注册中心有
 - consul
 - etcd
 - nacos
+
 默认是 standalone，可以通过修改 application.yml 进行配置
 ```yaml
 cluster:
@@ -57,10 +67,13 @@ cluster:
     namespace: ${SW_CLUSTER_K8S_NAMESPACE:default}
     
   # 省略部分配置...
-```  
-OAP 启动的时候，如果当前角色是 Mixed 或 Aggregator，则会将自己注册到集群注册中心，standalone 模式下也有一个内存级集群管理器，参见 `StandaloneManager` 类 。
+```
+OAP 启动的时候，如果当前角色是 Mixed 或 Aggregator，则会将自己注册到集群注册中心，standalone 模式下也有一个内存级集群管理器，参见 `StandaloneManager` 类的实现 。
 
 #### Data TTL timer 配置
+
+application.yml 中的配置
+
 ```yaml
 core:
   selector: ${SW_CORE:default}
@@ -87,27 +100,27 @@ core:
 - metricsDataTTL metrics 数据的 TTL，单位：天。 
 
 #### DataTTLKeeperTimer 定时任务
-DataTTLKeeperTimer 负责删除过期的数据
-SkyWalking OAP 在启动的时候会根据 `enableDataKeeperExecutor` 配置决定是否开启 DataTTLKeeperTimer，也就是是否执行 `DataTTLKeeperTimer#start()` 方法。
- `DataTTLKeeperTimer#start()` 方法的执行逻辑主要是通过 JDK 内置的 `Executors.newSingleThreadScheduledExecutor()` 创建一个单线程的定时任务，
-执行 `DataTTLKeeperTimer#delete()` 方法删除过期的数据， 执行周期是`dataKeeperExecutePeriod` 配置值，默认5分钟执行一次。
+DataTTLKeeperTimer 负责删除过期的数据，SkyWalking OAP 在启动的时候会根据 `enableDataKeeperExecutor` 配置决定是否开启 DataTTLKeeperTimer，也就是是否执行 `DataTTLKeeperTimer#start()` 方法。 `DataTTLKeeperTimer#start()` 方法的执行逻辑主要是通过 JDK 内置的 `Executors.newSingleThreadScheduledExecutor()` 创建一个单线程的定时任务，执行 `DataTTLKeeperTimer#delete()` 方法删除过期的数据， 执行周期是`dataKeeperExecutePeriod` 配置值，默认5分钟执行一次。
+
+<img src="./skywalking-ttl-bug/start.png" alt="skywalking-ttl-bug" style="zoom:50%;" />
 
 #### Bug 产生的原因
 `DataTTLKeeperTimer#start()` 方法会在所有 OAP 节点启动一个定时任务，那如果所有节点都去执行数据删除操作可能会有问题，那么如何保证只有一个节点执行呢？
+
 如果让我们设计的话，可能会引入一个分布式任务调度框架或者实现分布式锁，这样的话 SkyWalking 就要强依赖某个中间件了，SkyWalking 可能是考虑到了这些也没有选择这么实现。
-那我们看下 SkyWalking 是如何解决这个问题的呢，我们前面提到 OAP 在启动的时候，如果当前角色是 Mixed 或 Aggregator，则会将自己注册到集群注册中心，
-SkyWalking OAP 调用 `clusterNodesQuery#queryRemoteNodes()` 方法，从注册中心获取这些节点的注册信息（host:port）集合，
+
+那我们看下 SkyWalking 是如何解决这个问题的呢，我们前面提到 OAP 在启动的时候，如果当前角色是 Mixed 或 Aggregator，则会将自己注册到集群注册中心，SkyWalking OAP 调用 `clusterNodesQuery#queryRemoteNodes()` 方法，从注册中心获取这些节点的注册信息（host:port）集合，
 然后判断集合中的第一个节点是否就是当前节点，如果是那么当前节点执行过期数据删除操作，如下图所示
 <img src="./skywalking-ttl-bug/nodes.png" alt="skywalking-ttl-bug" style="zoom:50%;" />
+
 节点A和节点集合中的第一个元素相等，则节点A负责执行过期数据删除操作。
 
-这就要求 `queryRemoteNodes` 返回的节点集合是有序的，为什么这么说呢， 试想一下，如果每个 OAP 节点调用 `queryRemoteNodes` 方法返回的注册信息顺序不一致的话，
-就可能出现所有节点都不和集合中的第一个节点相等，这种情况下就没有 OAP 节点能执行过期数据删除操作了，而 `queryRemoteNodes` 方法恰恰无法保证返回的注册信息顺序一致。
+这就要求 `queryRemoteNodes` 返回的节点集合是有序的，为什么这么说呢， 试想一下，如果每个 OAP 节点调用 `queryRemoteNodes` 方法返回的注册信息顺序不一致的话，就可能出现所有节点都不和集合中的第一个节点相等，这种情况下就没有 OAP 节点能执行过期数据删除操作了，而 `queryRemoteNodes` 方法恰恰无法保证返回的注册信息顺序一致。
 
 
 #### 解决 Bug
-我们既然知道了 bug 产生的原因，
-
+我们既然知道了 bug 产生的原因，解决起来就比较简单了，只需要对获取到的节点集合调用 `Collections.sort()` 方法对 `RemoteInstance`（实现了java.lang.Comparable 接口）做排序，保证所有OAP节点做比较时都是一致的顺序，代码如下
+<img src="./skywalking-ttl-bug/bug-fix.png" alt="skywalking-ttl-bug" style="zoom:50%;" />
 
 相关代码如下：
 ```java
@@ -207,6 +220,8 @@ public enum DataTTLKeeperTimer {
 }
 
 ```
+
+更多技术细节大家可以参考下面的链接
 
 相关链接
 - https://lists.apache.org/thread/ztp4b3kc6swsc6d5bm4bjnc11h0bdtkz
