@@ -56,7 +56,7 @@ public class JVMService implements BootService, Runnable {
 
     @Override
     public void boot() throws Throwable {
-        // 收集 JVM 信息的线程
+        // 收集 JVM 信息的线程（定时任务，每秒执行一次）
         collectMetricFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("JVMService-produce"))
                                        .scheduleAtFixedRate(new RunnableWithExceptionProtection(
@@ -68,7 +68,7 @@ public class JVMService implements BootService, Runnable {
                                                }
                                            }
                                        ), 0, 1, TimeUnit.SECONDS);
-        // 发送线程
+        // 发送线程（定时任务，每秒执行一次）
         sendMetricFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("JVMService-consume"))
                                     .scheduleAtFixedRate(new RunnableWithExceptionProtection(
@@ -105,7 +105,7 @@ public class JVMService implements BootService, Runnable {
             jvmBuilder.addAllGc(GCProvider.INSTANCE.getGCList());
             jvmBuilder.setThread(ThreadProvider.INSTANCE.getThreadMetrics());
             jvmBuilder.setClazz(ClassProvider.INSTANCE.getClassMetrics());
-
+            // 将 jvm metric 放入队列
             sender.offer(jvmBuilder.build());
         } catch (Exception e) {
             LOGGER.error(e, "Collect JVM info fail.");

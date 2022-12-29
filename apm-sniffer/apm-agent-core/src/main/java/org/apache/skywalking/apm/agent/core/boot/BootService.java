@@ -23,10 +23,11 @@ package org.apache.skywalking.apm.agent.core.boot;
  * {@link #boot()} will be called when <code>BootService</code> start up.
  */
 public interface BootService {
+    // 1
     void prepare() throws Throwable;
-
+    // 2
     void boot() throws Throwable;
-
+    // 3
     void onComplete() throws Throwable;
 
     void shutdown() throws Throwable;

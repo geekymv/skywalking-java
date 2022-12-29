@@ -73,6 +73,7 @@ public class JVMMetricsSender implements BootService, Runnable, GRPCChannelListe
             try {
                 JVMMetricCollection.Builder builder = JVMMetricCollection.newBuilder();
                 LinkedList<JVMMetric> buffer = new LinkedList<>();
+                // 从队列中取出 jvm metric
                 queue.drainTo(buffer);
                 if (buffer.size() > 0) {
                     builder.addAllMetrics(buffer);
