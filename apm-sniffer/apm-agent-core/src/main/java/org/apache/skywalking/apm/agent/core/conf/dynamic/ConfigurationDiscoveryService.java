@@ -53,6 +53,9 @@ import org.apache.skywalking.apm.util.StringUtil;
 
 import static org.apache.skywalking.apm.agent.core.conf.Config.Collector.GRPC_UPSTREAM_TIMEOUT;
 
+/**
+ * 配置发现服务
+ */
 @DefaultImplementor
 public class ConfigurationDiscoveryService implements BootService, GRPCChannelListener {
 
@@ -88,6 +91,7 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
 
     @Override
     public void boot() throws Throwable {
+        // 开启定时任务，每 20s 执行一次
         getDynamicConfigurationFuture = Executors.newSingleThreadScheduledExecutor(
             new DefaultNamedThreadFactory("ConfigurationDiscoveryService")
         ).scheduleAtFixedRate(
@@ -115,7 +119,7 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
 
     /**
      * Register dynamic configuration watcher.
-     *
+     * 注册动态配置 watcher
      * @param watcher dynamic configuration watcher
      */
     public void registerAgentConfigChangeWatcher(AgentConfigChangeWatcher watcher) {
@@ -128,12 +132,12 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
 
     /**
      * Process ConfigurationDiscoveryCommand and notify each configuration watcher.
-     *
+     * 处理配置 command 通知到配置的 watcher
      * @param configurationDiscoveryCommand Describe dynamic configuration information
      */
     public void handleConfigurationDiscoveryCommand(ConfigurationDiscoveryCommand configurationDiscoveryCommand) {
         final String responseUuid = configurationDiscoveryCommand.getUuid();
-
+        // 判断 uuid 是否相等，如果相等说明配置值没有变动
         if (responseUuid != null && Objects.equals(this.uuid, responseUuid)) {
             return;
         }
@@ -149,15 +153,18 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
                 if (StringUtil.isBlank(newPropertyValue)) {
                     if (watcher.value() != null) {
                         // Notify watcher, the new value is null with delete event type.
+                        // 新值为空，旧值不为空，通知删除事件
                         watcher.notify(
                             new AgentConfigChangeWatcher.ConfigChangeEvent(
                                 null, AgentConfigChangeWatcher.EventType.DELETE
                             ));
                     } else {
+                        // 新值为空，旧值也为空，什么都不做
                         // Don't need to notify, stay in null.
                     }
                 } else {
                     if (!newPropertyValue.equals(watcher.value())) {
+                        // 新值和旧值不想等，通知更新事件，并将新值传递过去
                         watcher.notify(new AgentConfigChangeWatcher.ConfigChangeEvent(
                             newPropertyValue, AgentConfigChangeWatcher.EventType.MODIFY
                         ));
@@ -190,6 +197,7 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
                                                                                       ));
         List<KeyStringValuePair> configList = Lists.newArrayList();
         for (final String name : register.keys()) {
+            // 根据已注册的配置名称 key 获取配置的新值
             KeyStringValuePair command = commandConfigs.getOrDefault(name, KeyStringValuePair.newBuilder()
                                                                                              .setKey(name)
                                                                                              .build());
@@ -222,9 +230,11 @@ public class ConfigurationDiscoveryService implements BootService, GRPCChannelLi
                 }
 
                 if (configurationDiscoveryServiceBlockingStub != null) {
+                    // 同步 OAP 配置
                     final Commands commands = configurationDiscoveryServiceBlockingStub.withDeadlineAfter(
                         GRPC_UPSTREAM_TIMEOUT, TimeUnit.SECONDS
                     ).fetchConfigurations(builder.build());
+                    // CommandService 处理 command
                     ServiceManager.INSTANCE.findService(CommandService.class).receiveCommand(commands);
                 }
             } catch (Throwable t) {

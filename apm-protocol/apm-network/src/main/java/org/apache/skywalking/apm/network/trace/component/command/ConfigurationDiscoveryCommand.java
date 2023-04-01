@@ -33,6 +33,7 @@ public class ConfigurationDiscoveryCommand extends BaseCommand implements Serial
 
     /*
      * If config is unchanged, then could response the same uuid, and config is not required.
+     * 用于判断配置值是否变化
      */
     private String uuid;
     /*
@@ -48,6 +49,11 @@ public class ConfigurationDiscoveryCommand extends BaseCommand implements Serial
         this.config = config;
     }
 
+    /**
+     * command 反序列化
+     * @param command
+     * @return
+     */
     @Override
     public ConfigurationDiscoveryCommand deserialize(Command command) {
         String serialNumber = null;
@@ -58,6 +64,7 @@ public class ConfigurationDiscoveryCommand extends BaseCommand implements Serial
             if (SERIAL_NUMBER_CONST_NAME.equals(pair.getKey())) {
                 serialNumber = pair.getValue();
             } else if (UUID_CONST_NAME.equals(pair.getKey())) {
+                // uuid
                 uuid = pair.getValue();
             } else {
                 config.add(pair);
@@ -66,6 +73,10 @@ public class ConfigurationDiscoveryCommand extends BaseCommand implements Serial
         return new ConfigurationDiscoveryCommand(serialNumber, uuid, config);
     }
 
+    /**
+     * command 序列化
+     * @return
+     */
     @Override
     public Command.Builder serialize() {
         final Command.Builder builder = commandBuilder();

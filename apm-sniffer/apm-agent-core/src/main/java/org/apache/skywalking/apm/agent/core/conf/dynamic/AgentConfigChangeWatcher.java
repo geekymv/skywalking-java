@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public abstract class AgentConfigChangeWatcher {
     // Config key, should match KEY in the Table of Agent Configuration Properties.
+    // 配置 key
     private final String propertyKey;
 
     public AgentConfigChangeWatcher(String propertyKey) {
@@ -32,13 +33,14 @@ public abstract class AgentConfigChangeWatcher {
 
     /**
      * Notify the watcher, the new value received.
-     *
+     * 通知 watcher
      * @param value of new.
      */
     public abstract void notify(ConfigChangeEvent value);
 
     /**
      * @return current value of current config.
+     * 配置的当前值 value
      */
     public abstract String value();
 

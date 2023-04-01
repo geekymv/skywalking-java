@@ -63,6 +63,7 @@ public class CommandService implements BootService, Runnable {
 
         while (isRunning) {
             try {
+                // 从 BlockingQueue 中取出 command
                 BaseCommand command = commands.take();
 
                 // 判断 command 是否已经执行
@@ -108,7 +109,7 @@ public class CommandService implements BootService, Runnable {
                     LOGGER.warn("Command[{}] is executed, ignored", baseCommand.getCommand());
                     continue;
                 }
-
+                // 将接收到的 command 放入 BlockingQueue
                 boolean success = this.commands.offer(baseCommand);
 
                 if (!success && LOGGER.isWarnEnable()) {

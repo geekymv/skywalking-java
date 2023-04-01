@@ -42,10 +42,12 @@ public class SamplingRateWatcher extends AgentConfigChangeWatcher {
             LOGGER.debug("Updating using new static config: {}", config);
         }
         try {
+            // 记录最新值
             this.samplingRate.set(Integer.parseInt(config));
 
             /*
              * We need to notify samplingService the samplingRate changed.
+             * 通知值变更
              */
             samplingService.handleSamplingRateChanged();
         } catch (NumberFormatException ex) {
@@ -56,8 +58,10 @@ public class SamplingRateWatcher extends AgentConfigChangeWatcher {
     @Override
     public void notify(final ConfigChangeEvent value) {
         if (EventType.DELETE.equals(value.getEventType())) {
+            // 删除事件，使用默认值
             activeSetting(String.valueOf(getDefaultValue()));
         } else {
+            // 更新事件
             activeSetting(value.getNewValue());
         }
     }

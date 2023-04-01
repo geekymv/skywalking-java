@@ -34,6 +34,7 @@ import org.apache.skywalking.apm.network.trace.component.command.ProfileTaskComm
  * and it will routes the command to corresponding executor.
  * <p>
  * Registering command executor for new command in {@link #commandExecutorMap} is required to support new command.
+ * 管理 command 和 对应的执行器 executor 的映射
  */
 @DefaultImplementor
 public class CommandExecutorService implements BootService, CommandExecutor {

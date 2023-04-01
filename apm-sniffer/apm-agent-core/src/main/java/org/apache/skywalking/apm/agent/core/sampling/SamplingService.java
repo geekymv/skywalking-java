@@ -58,6 +58,7 @@ public class SamplingService implements BootService {
 
     @Override
     public void boot() {
+        // 采样率 watcher，构造方法中的 this 用于配置值变更时的通知
         samplingRateWatcher = new SamplingRateWatcher("agent.sample_n_per_3_secs", this);
         ServiceManager.INSTANCE.findService(ConfigurationDiscoveryService.class)
                                .registerAgentConfigChangeWatcher(samplingRateWatcher);
@@ -83,10 +84,13 @@ public class SamplingService implements BootService {
      */
     public boolean trySampling(String operationName) {
         if (on) {
+            // 开启采样，samplingFactorHolder 的值每 3s 会重置为0
             int factor = samplingFactorHolder.get();
             if (factor < samplingRateWatcher.getSamplingRate()) {
+                // samplingFactorHolder 小于配置的采样率，则+1
                 return samplingFactorHolder.compareAndSet(factor, factor + 1);
             } else {
+                // 返回 false 不采样，不会将数据发送到后端 OAP
                 return false;
             }
         }
@@ -109,14 +113,17 @@ public class SamplingService implements BootService {
 
     /**
      * Handle the samplingRate changed.
+     * 采样率值有更新
      */
     public void handleSamplingRateChanged() {
+        // 从 watcher 中获取采样率新值
         if (samplingRateWatcher.getSamplingRate() > 0) {
             if (!on) {
                 on = true;
                 this.resetSamplingFactor();
                 ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor(
                     new DefaultNamedThreadFactory("SamplingService"));
+                // 开启定时任务，每3s执行一次 resetSamplingFactor
                 scheduledFuture = service.scheduleAtFixedRate(new RunnableWithExceptionProtection(
                     this::resetSamplingFactor, t -> LOGGER.error("unexpected exception.", t)), 0, 3, TimeUnit.SECONDS);
                 LOGGER.debug(

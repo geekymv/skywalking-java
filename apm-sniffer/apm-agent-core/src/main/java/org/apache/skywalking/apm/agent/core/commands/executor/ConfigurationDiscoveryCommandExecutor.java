@@ -27,6 +27,9 @@ import org.apache.skywalking.apm.agent.core.logging.api.LogManager;
 import org.apache.skywalking.apm.network.trace.component.command.BaseCommand;
 import org.apache.skywalking.apm.network.trace.component.command.ConfigurationDiscoveryCommand;
 
+/**
+ * 动态配置 command executor
+ */
 public class ConfigurationDiscoveryCommandExecutor implements CommandExecutor {
 
     private static final ILog LOGGER = LogManager.getLogger(ConfigurationDiscoveryCommandExecutor.class);
