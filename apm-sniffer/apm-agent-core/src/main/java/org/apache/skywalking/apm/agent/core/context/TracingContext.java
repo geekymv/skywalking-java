@@ -74,6 +74,7 @@ public class TracingContext implements AbstractTracerContext {
      * Active spans stored in a Stack, usually called 'ActiveSpanStack'. This {@link LinkedList} is the in-memory
      * storage-structure. <p> I use {@link LinkedList#removeLast()}, {@link LinkedList#addLast(Object)} and {@link
      * LinkedList#getLast()} instead of {@link #pop()}, {@link #push(AbstractSpan)}, {@link #peek()}
+     * 栈结构
      */
     private LinkedList<AbstractSpan> activeSpanStack = new LinkedList<>();
     /**
@@ -170,7 +171,7 @@ public class TracingContext implements AbstractTracerContext {
         if (StringUtil.isEmpty(peer)) {
             throw new IllegalStateException("Exit span doesn't include meaningful peer information.");
         }
-
+        // 将 trace segment span service 等信息设置到 ContextCarrier
         carrier.setTraceId(getReadablePrimaryTraceId());
         carrier.setTraceSegmentId(this.segment.getTraceSegmentId());
         carrier.setSpanId(exitSpan.getSpanId());
@@ -178,7 +179,7 @@ public class TracingContext implements AbstractTracerContext {
         carrier.setParentServiceInstance(Config.Agent.INSTANCE_NAME);
         carrier.setParentEndpoint(first().getOperationName());
         carrier.setAddressUsedAtClient(peer);
-
+        // 将 correlationContext 中的数据 data 放入 carrier.correlationContext 中的 data
         this.correlationContext.inject(carrier);
         this.extensionContext.inject(carrier);
     }
@@ -338,9 +339,11 @@ public class TracingContext implements AbstractTracerContext {
         AbstractSpan parentSpan = peek();
         TracingContext owner = this;
         if (parentSpan != null && parentSpan.isExit()) {
+            // 有 parentSpan
             exitSpan = parentSpan;
         } else {
             final int parentSpanId = parentSpan == null ? -1 : parentSpan.getSpanId();
+            // 创建 ExitSpan
             exitSpan = new ExitSpan(spanIdGenerator++, parentSpanId, operationName, remotePeer, owner);
             push(exitSpan);
         }
@@ -562,6 +565,7 @@ public class TracingContext implements AbstractTracerContext {
         if (spanIdGenerator >= spanLimitWatcher.getSpanLimit()) {
             long currentTimeMillis = System.currentTimeMillis();
             if (currentTimeMillis - lastWarningTimestamp > 30 * 1000) {
+                // 间隔 30s 输出一次告警日志
                 LOGGER.warn(
                     new RuntimeException("Shadow tracing context. Thread dump"),
                     "More than {} spans required to create", spanLimitWatcher.getSpanLimit()

@@ -58,6 +58,7 @@ public class ContextManager implements BootService {
                 if (LOGGER.isDebugEnable()) {
                     LOGGER.debug("No operation name, ignore this trace.");
                 }
+                // operationName 为空，创建 IgnoredTracerContext
                 context = new IgnoredTracerContext();
             } else {
                 if (EXTEND_SERVICE == null) {
@@ -133,7 +134,9 @@ public class ContextManager implements BootService {
             throw new IllegalArgumentException("ContextCarrier can't be null.");
         }
         operationName = StringUtil.cut(operationName, OPERATION_NAME_THRESHOLD);
+        // 获取 TracingContext
         AbstractTracerContext context = getOrCreate(operationName, false);
+        // 创建 ExitSpan
         AbstractSpan span = context.createExitSpan(operationName, remotePeer);
         context.inject(carrier);
         return span;

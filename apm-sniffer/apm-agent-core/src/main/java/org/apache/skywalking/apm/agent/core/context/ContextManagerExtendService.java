@@ -51,11 +51,17 @@ public class ContextManagerExtendService implements BootService, GRPCChannelList
     @Override
     public void boot() {
         ignoreSuffixArray = Config.Agent.IGNORE_SUFFIX.split(",");
+        // this 使用
+        // IgnoreSuffixPatternsWatcher 内部持有 ContextManagerExtendService
+        // ContextManagerExtendService 内部持有 IgnoreSuffixPatternsWatcher
         ignoreSuffixPatternsWatcher = new IgnoreSuffixPatternsWatcher("agent.ignore_suffix", this);
+        // SpanLimitWatcher 限制每个 Segment 中 Span 个数
         spanLimitWatcher = new SpanLimitWatcher("agent.span_limit_per_segment");
 
+        // CDS
         ConfigurationDiscoveryService configurationDiscoveryService = ServiceManager.INSTANCE.findService(
             ConfigurationDiscoveryService.class);
+        // 注册 watcher
         configurationDiscoveryService.registerAgentConfigChangeWatcher(spanLimitWatcher);
         configurationDiscoveryService.registerAgentConfigChangeWatcher(ignoreSuffixPatternsWatcher);
 
@@ -88,6 +94,7 @@ public class ContextManagerExtendService implements BootService, GRPCChannelList
         } else {
             SamplingService samplingService = ServiceManager.INSTANCE.findService(SamplingService.class);
             if (forceSampling || samplingService.trySampling(operationName)) {
+                // 创建 TracingContext
                 context = new TracingContext(operationName, spanLimitWatcher);
             } else {
                 context = new IgnoredTracerContext();
