@@ -145,6 +145,7 @@ public abstract class AbstractTracingSpan implements AbstractSpan {
      */
     public boolean finish(TraceSegment owner) {
         this.endTime = System.currentTimeMillis();
+        // 将当前 span(this) 加入到 segment 的 spans 中
         owner.archive(this);
         return true;
     }

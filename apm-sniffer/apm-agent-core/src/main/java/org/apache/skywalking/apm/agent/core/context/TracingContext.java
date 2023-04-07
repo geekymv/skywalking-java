@@ -469,6 +469,7 @@ public class TracingContext implements AbstractTracerContext {
     /**
      * The <code>ListenerManager</code> represents an event notify for every registered listener, which are notified
      * when the <code>TracingContext</code> finished, and {@link #segment} is ready for further process.
+     * TracingContext finished, segment 的进一步处理
      */
     public static class ListenerManager {
         private static List<TracingContextListener> LISTENERS = new LinkedList<>();
@@ -491,6 +492,7 @@ public class TracingContext implements AbstractTracerContext {
          */
         static void notifyFinish(TraceSegment finishedSegment) {
             for (TracingContextListener listener : LISTENERS) {
+                // 通知 listener (TraceSegmentServiceClient)
                 listener.afterFinished(finishedSegment);
             }
         }

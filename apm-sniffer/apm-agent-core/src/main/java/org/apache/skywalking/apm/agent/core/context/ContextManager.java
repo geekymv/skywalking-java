@@ -210,6 +210,7 @@ public class ContextManager implements BootService {
 
     private static void stopSpan(AbstractSpan span, final AbstractTracerContext context) {
         if (context.stopSpan(span)) {
+            // 当 context 中的 activeSpanStack 为空，从 ThreadLocal 移除 TracerContext
             CONTEXT.remove();
             RUNTIME_CONTEXT.remove();
         }
