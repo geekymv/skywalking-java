@@ -37,7 +37,7 @@ import static org.apache.skywalking.apm.agent.core.conf.Config.Agent.OPERATION_N
  * https://github.com/opentracing/specification/blob/master/specification.md#references-between-spans
  *
  * <p> Also, {@link ContextManager} delegates to all {@link AbstractTracerContext}'s major methods.
- *
+ * TraceSegment 是单个线程的所有操作，因此需要使用 ThreadLocal 维护 context
  * ContextManager 主要要负责（提供给插件使用）
  * 1.获取或创建 TracingContext
  * 2.创建 EntrySpan、LocalSpan、ExistSpan
@@ -127,12 +127,14 @@ public class ContextManager implements BootService {
 
     /**
      * 需要继续向后传递 ContextCarrier 的 ExitSpan (比如 http client 调用其他 web 服务)
+     * @param operationName 对于 HTTP 请求，一般是请求路径 path
      */
     public static AbstractSpan createExitSpan(String operationName, ContextCarrier carrier, String remotePeer) {
         if (carrier == null) {
             throw new IllegalArgumentException("ContextCarrier can't be null.");
         }
         operationName = StringUtil.cut(operationName, OPERATION_NAME_THRESHOLD);
+        // 获取 TracingContext
         AbstractTracerContext context = getOrCreate(operationName, false);
         AbstractSpan span = context.createExitSpan(operationName, remotePeer);
         context.inject(carrier);

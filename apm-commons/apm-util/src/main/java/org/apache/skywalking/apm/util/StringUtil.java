@@ -83,6 +83,12 @@ public final class StringUtil {
         return true;
     }
 
+    /**
+     * 字符串截取
+     * @param str
+     * @param threshold
+     * @return
+     */
     public static String cut(String str, int threshold) {
         if (isEmpty(str) || str.length() <= threshold) {
             return str;

@@ -50,6 +50,7 @@ public class ContextManagerExtendService implements BootService, GRPCChannelList
 
     @Override
     public void boot() {
+        // 后缀忽略
         ignoreSuffixArray = Config.Agent.IGNORE_SUFFIX.split(",");
         ignoreSuffixPatternsWatcher = new IgnoreSuffixPatternsWatcher("agent.ignore_suffix", this);
         spanLimitWatcher = new SpanLimitWatcher("agent.span_limit_per_segment");
@@ -88,6 +89,7 @@ public class ContextManagerExtendService implements BootService, GRPCChannelList
         } else {
             SamplingService samplingService = ServiceManager.INSTANCE.findService(SamplingService.class);
             if (forceSampling || samplingService.trySampling(operationName)) {
+                // 创建 TracingContext
                 context = new TracingContext(operationName, spanLimitWatcher);
             } else {
                 context = new IgnoredTracerContext();
