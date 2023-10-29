@@ -55,6 +55,8 @@ public abstract class StackBasedTracingSpan extends AbstractTracingSpan {
     @Override
     public boolean finish(TraceSegment owner) {
         if (--stackDepth == 0) {
+            // 第一个进入 stack 中的 span 完成了
+            // 对于 ExitSpan，只记录第一个（栈底），其他 ExitSpan 会被忽略
             return super.finish(owner);
         } else {
             return false;

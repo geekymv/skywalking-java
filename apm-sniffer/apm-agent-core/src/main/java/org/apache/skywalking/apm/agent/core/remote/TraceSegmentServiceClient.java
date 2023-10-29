@@ -89,6 +89,10 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
 
     }
 
+    /**
+     * 从 DataCarrier 中消费数据
+     * @param data
+     */
     @Override
     public void consume(List<TraceSegment> data) {
         if (CONNECTED.equals(status)) {
@@ -125,7 +129,9 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
 
             try {
                 for (TraceSegment segment : data) {
+                    // 将 TraceSegment 转换成 SegmentObject
                     SegmentObject upstreamSegment = segment.transform();
+                    // 将 SegmentObject 发送给后端 OAP
                     upstreamSegmentStreamObserver.onNext(upstreamSegment);
                 }
             } catch (Throwable t) {
@@ -169,6 +175,10 @@ public class TraceSegmentServiceClient implements BootService, IConsumer<TraceSe
 
     }
 
+    /**
+     * TracingContext 完成，进一步处理 TraceSegment
+     * @param traceSegment
+     */
     @Override
     public void afterFinished(TraceSegment traceSegment) {
         if (traceSegment.isIgnore()) {
