@@ -60,6 +60,9 @@ public class JedisMethodInterceptor implements InstanceMethodsAroundInterceptor 
             return Optional.empty();
         }
         Object argument = allArguments[0];
+        if (argument instanceof byte[]) {
+            argument = new String((byte[]) argument);
+        }
         // include null
         if (!(argument instanceof String)) {
             return Optional.empty();
