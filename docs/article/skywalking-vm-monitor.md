@@ -1,21 +1,21 @@
-SkyWalking 支持两种方式监控主机，8.4 版本就开始支持监控主机，用户可以轻松从仪表板上检测可能的问题，例如当 CPU 使用过载、内存或磁盘空间不足或者当网络状态不健康时等。
-与监控MySQL Server 类似，SkyWalking 也是利用 Prometheus 和 OpenTelemetry 收集主机的 metrics 数据。
-SkyWalking 也提供了InfluxDB Telegraf 通过 Telegraf receiver 接收主机的 metrics 数据，telegraf receiver 插件负责接收、处理和转换 metrics，
+SkyWalking 从 8.4 版本开始支持监控主机，用户可以轻松从 dashboard 上检测可能的问题，例如当 CPU 使用过载、内存或磁盘空间不足或者当网络状态不健康时等。
+与监控 MySQL Server 类似，SkyWalking 也是利用 Prometheus 和 OpenTelemetry 收集主机的 metrics 数据。
+同时 SkyWalking 也提供了使用 InfluxDB Telegraf 通过 Telegraf receiver 接收主机的 metrics 数据，telegraf receiver 插件负责接收、处理和转换 metrics，
 然后将转换后的数据发送给 SkyWalking MAL 处理。
 
-方式一 Prometheus + OpenTelemetry 处理流程如下：
+方式一：Prometheus + OpenTelemetry，处理流程如下：
 <img src="./skywalking-vm-monitor/infrastructure-monitoring.png" alt="infrastructure-monitoring" style="zoom:50%;" />
 - Prometheus Node Exporter 从主机收集 metrics 数据.
 - OpenTelemetry Collector 通过 Prometheus Receiver 从 Node Exporters 抓取 metrics 数据, 然后将 metrics 推送的到 SkyWalking OAP Server.
 - SkyWalking OAP Server 通过 MAL 引擎去分析、计算、聚合和存储，处理规则位于 /config/otel-oc-rules/vm.yaml 文件.
 - 用户可以通过 SkyWalking WebUI dashboard 查看监控数据。
 
-方式二通过 Telegraf receiver 具体参考官网文档的部署方式 https://skywalking.apache.org/docs/main/next/en/setup/backend/backend-vm-monitoring 。
+方式二：通过 Telegraf receiver 具体参考官网文档的部署方式 https://skywalking.apache.org/docs/main/next/en/setup/backend/backend-vm-monitoring 。
 
 ### 部署
 #### 部署 SkyWalking
-之前的文章都是默认大家会部署 SkyWalking 的，这里我也提供下平时测试用的部署方式，我这里采用 docker compose 部署，主要是参考官网提供的部署配置
-SkyWalking 提供的部署的基础配置在代码目录中，链接地址 https://github.com/apache/skywalking/tree/master/docker 。
+之前的文章都是默认大家会部署 SkyWalking 的，这里我也提供下平时测试用的部署方式，我这里采用 docker compose 部署，主要是参考官网提供的部署配置，
+SkyWalking 提供的部署基础配置在代码目录中，链接地址 https://github.com/apache/skywalking/tree/master/docker 。
 
 ##### docker-compose.yml
 ```yaml
@@ -116,7 +116,7 @@ UI_IMAGE=apache/skywalking-ui:9.7.0
 ```shell
 docker compose up
 ```
-启动完成后，访问 http://IP:8080 就可以正常打开 dashboard 页面了，当然这个时候还没有监控数据
+启动完成后，访问 http://IP:8080 就可以正常打开 dashboard 页面了，当然这个时候还看不到监控数据。
 
 #### 部署 Prometheus node-exporter
 [node-exporter 官方文档](https://prometheus.io/docs/guides/node-exporter/) ，下载地址 [https://prometheus.io/download/#node_exporter](https://prometheus.io/download/#node_exporter)
